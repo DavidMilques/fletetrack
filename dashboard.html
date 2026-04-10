@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#185FA5">
+<title>FleteTrack — Operador</title>
+<style>
+  :root {
+    --blue:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;
+    --green:#1D9E75;--green-l:#E1F5EE;--green-t:#085041;
+    --amber:#BA7517;--amber-l:#FAEEDA;--amber-t:#633806;
+    --red:#E24B4A;--red-l:#FCEBEB;--red-t:#791F1F;
+    --gray:#5F5E5A;--gray-l:#F1EFE8;--gray-t:#2C2C2A;
+    --border:#e0ddd6;--bg:#f8f7f4;--white:#fff;
+    --radius:10px;--radius-sm:6px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+  body{background:var(--bg);color:#1a1a18;min-height:100vh}
+
+  /* TOPBAR */
+  .topbar{background:var(--blue);color:white;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:20}
+  .topbar-left{display:flex;align-items:center;gap:12px}
+  .topbar h1{font-size:16px;font-weight:600}
+  .topbar-date{font-size:12px;opacity:.75}
+  .topbar-right{display:flex;align-items:center;gap:8px}
+  .refresh-btn{background:rgba(255,255,255,.15);border:none;color:white;padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px}
+  .refresh-btn:hover{background:rgba(255,255,255,.25)}
+  .last-update{font-size:11px;opacity:.6}
+  .spinning{animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* LAYOUT */
+  .layout{display:flex;height:calc(100vh - 52px)}
+  .sidebar{width:280px;background:white;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+  .sidebar-hdr{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .sidebar-hdr span{font-size:12px;font-weight:600;color:var(--gray-t)}
+  .sidebar-body{overflow-y:auto;flex:1}
+  .main{flex:1;overflow-y:auto;padding:16px 20px}
+
+  /* MÉTRICAS */
+  .metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:18px}
+  .metric{background:white;border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+  .metric-val{font-size:24px;font-weight:600}
+  .metric-lbl{font-size:11px;color:var(--gray);margin-top:3px}
+  .metric.m-run .metric-val{color:var(--blue)}
+  .metric.m-ok .metric-val{color:var(--green)}
+  .metric.m-warn .metric-val{color:var(--amber)}
+  .metric.m-total .metric-val{color:var(--gray-t)}
+
+  /* DESPACHO ITEM SIDEBAR */
+  .d-item{padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
+  .d-item:hover{background:var(--bg)}
+  .d-item.sel{background:var(--blue-l);border-left:3px solid var(--blue)}
+  .d-item.warn{border-left:3px solid var(--amber)}
+  .d-item-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+  .d-placa{font-size:13px;font-weight:600}
+  .d-cond{font-size:11px;color:var(--gray);margin-bottom:4px}
+  .d-progress{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:6px}
+  .d-progress-fill{height:100%;border-radius:2px;transition:width .4s}
+  .d-meta{font-size:10px;color:var(--gray);margin-top:4px}
+
+  /* BADGES */
+  .badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500;white-space:nowrap}
+  .b-run{background:var(--blue-l);color:var(--blue-t)}
+  .b-ok{background:var(--green-l);color:var(--green-t)}
+  .b-warn{background:var(--amber-l);color:var(--amber-t)}
+  .b-pend{background:var(--gray-l);color:var(--gray)}
+  .b-done{background:var(--green-l);color:var(--green-t)}
+
+  /* DETAIL */
+  .detail-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+  .detail-hdr h2{font-size:17px;font-weight:600}
+  .detail-hdr p{font-size:12px;color:var(--gray);margin-top:2px}
+  .section-lbl{font-size:11px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 8px}
+  .card{background:white;border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+  .card.warn-card{border-color:var(--amber);background:var(--amber-l)}
+
+  /* INFO GRID */
+  .info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .info-item{display:flex;flex-direction:column;gap:2px}
+  .info-lbl{font-size:10px;color:var(--gray)}
+  .info-val{font-size:13px;font-weight:500}
+
+  /* TIEMPOS */
+  .times-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+  .time-box{background:var(--bg);border-radius:var(--radius-sm);padding:10px;text-align:center;border:1px solid var(--border)}
+  .time-val{font-size:14px;font-weight:600;color:var(--gray-t)}
+  .time-lbl{font-size:10px;color:var(--gray);margin-top:2px}
+  .time-box.highlight{background:var(--blue-l);border-color:var(--blue)}
+  .time-box.highlight .time-val{color:var(--blue-t)}
+
+  /* TIENDAS TABLE */
+  .tiendas-table{width:100%;border-collapse:collapse}
+  .tiendas-table th{font-size:10px;font-weight:600;color:var(--gray);text-align:left;padding:6px 10px;border-bottom:2px solid var(--border);text-transform:uppercase;letter-spacing:.04em}
+  .tiendas-table td{font-size:12px;padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+  .tiendas-table tr:last-child td{border-bottom:none}
+  .tiendas-table tr:hover td{background:var(--bg)}
+  .t-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+  .tn-pend{background:var(--gray-l);color:var(--gray)}
+  .tn-ok{background:var(--green);color:white}
+  .tn-run{background:var(--blue);color:white}
+  .foto-link{font-size:11px;color:var(--blue);text-decoration:none;display:flex;align-items:center;gap:3px}
+  .foto-link:hover{text-decoration:underline}
+  .no-foto{font-size:11px;color:var(--border)}
+
+  /* NOVEDADES */
+  .nov-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+  .nov-item:last-child{border-bottom:none}
+  .nov-icon{width:32px;height:32px;border-radius:8px;background:var(--amber-l);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .nov-tipo{font-size:12px;font-weight:600;color:var(--amber-t)}
+  .nov-desc{font-size:11px;color:var(--gray-t);margin-top:2px}
+  .nov-meta{font-size:10px;color:var(--gray);margin-top:3px}
+
+  /* PROGRESS */
+  .prog-wrap{margin:8px 0 4px}
+  .prog-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+  .prog-fill{height:100%;border-radius:3px;transition:width .4s}
+  .prog-txt{display:flex;justify-content:space-between;font-size:10px;color:var(--gray);margin-top:3px}
+
+  /* LINK CONDUCTOR */
+  .link-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:11px;color:var(--gray-t);word-break:break-all;margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .copy-btn{background:var(--blue);color:white;border:none;border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0}
+  .copy-btn:hover{background:var(--blue-t)}
+
+  /* EMPTY / LOADING */
+  .empty{text-align:center;padding:40px 20px;color:var(--gray)}
+  .spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
+  .loading{text-align:center;padding:30px;color:var(--gray);font-size:13px}
+
+  /* FILTROS */
+  .filtros-bar{background:white;border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .filtro-group{display:flex;align-items:center;gap:6px}
+  .filtro-group label{font-size:11px;font-weight:600;color:var(--gray);white-space:nowrap}
+  .filtro-group input[type=date],.filtro-group select{font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:white;color:#1a1a18;outline:none;cursor:pointer}
+  .filtro-group input[type=date]:focus,.filtro-group select:focus{border-color:var(--blue)}
+  .filtro-sep{width:1px;height:24px;background:var(--border)}
+  .filtro-reset{font-size:11px;color:var(--blue);background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:4px}
+  .filtro-reset:hover{background:var(--blue-l)}
+  .filtro-results{font-size:11px;color:var(--gray);margin-left:auto}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a18;color:white;padding:9px 16px;border-radius:20px;font-size:12px;z-index:100;opacity:0;transition:opacity .3s;pointer-events:none}
+  .toast.show{opacity:1}
+
+  /* NOVEDAD BADGE PULSANTE */
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+  .pulse{animation:pulse 1.5s ease-in-out infinite}
+
+  /* RESPONSIVE sidebar collapse en móvil */
+  @media(max-width:700px){
+    .layout{flex-direction:column}
+    .sidebar{width:100%;height:auto;max-height:220px}
+    .metrics{grid-template-columns:repeat(2,1fr)}
+    .times-grid{grid-template-columns:repeat(2,1fr)}
+    .info-grid{grid-template-columns:repeat(2,1fr)}
+  }
+</style>
+</head>
+<body>
+
+<!-- ⚠️ CAMBIA ESTA URL por la de tu Apps Script -->
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbzzFoFqCW9ing84bgkw8tMzOBMhDdr-K38WOOuvvHrrJ9HHQw654542VydM5rgaFH2P/exec';
+const BASE_URL = 'https://davidmilques.github.io/fletetrack/conductor.html';
+const AUTO_REFRESH_MS = 60000; // refresca cada 60 segundos
+
+let todos = [];
+let filtrados = [];
+let selIdx = 0;
+let refreshTimer = null;
+let filtroFecha = '';
+let filtroEstado = '';
+let filtroConductor = '';
+let filtroPlaca = '';
+</script>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <h1>FleteTrack</h1>
+    <span class="topbar-date" id="fecha-hoy"></span>
+  </div>
+  <div class="topbar-right">
+    <span class="last-update" id="last-update"></span>
+    <button class="refresh-btn" onclick="cargarTodo(true)">
+      <svg id="ref-icon" width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M13.5 8A5.5 5.5 0 112.5 5M2.5 2v3h3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Actualizar
+    </button>
+  </div>
+</div>
+
+<div class="filtros-bar">
+  <div class="filtro-group">
+    <label>Fecha</label>
+    <input type="date" id="filtro-fecha" onchange="aplicarFiltros()">
+  </div>
+  <div class="filtro-sep"></div>
+  <div class="filtro-group">
+    <label>Estado</label>
+    <select id="filtro-estado" onchange="aplicarFiltros()">
+      <option value="">Todos</option>
+      <option value="Pendiente">Pendiente</option>
+      <option value="Cargado">Cargado</option>
+      <option value="En ruta">En ruta</option>
+      <option value="Novedad">Novedad</option>
+      <option value="Completado">Completado</option>
+    </select>
+  </div>
+  <div class="filtro-sep"></div>
+  <div class="filtro-group">
+    <label>Conductor</label>
+    <select id="filtro-conductor" onchange="aplicarFiltros()">
+      <option value="">Todos</option>
+    </select>
+  </div>
+  <div class="filtro-sep"></div>
+  <div class="filtro-group">
+    <label>Placa</label>
+    <select id="filtro-placa" onchange="aplicarFiltros()">
+      <option value="">Todas</option>
+    </select>
+  </div>
+  <button class="filtro-reset" onclick="limpiarFiltros()">Limpiar filtros</button>
+  <span class="filtro-results" id="filtro-results"></span>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-hdr">
+      <span id="sidebar-count">Despachos</span>
+      <span id="novedades-badge" style="display:none" class="badge b-warn pulse">0 novedades</span>
+    </div>
+    <div class="sidebar-body" id="sidebar-body">
+      <div class="loading"><div class="spinner"></div>Cargando...</div>
+    </div>
+  </div>
+
+  <div class="main" id="main-content">
+    <div class="loading"><div class="spinner"></div>Cargando despachos desde tu Google Sheets...</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ----- INIT -----
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('fecha-hoy').textContent = fechaHoy();
+  // Setear fecha de hoy en el filtro
+  const hoy = new Date();
+  const yyyy = hoy.getFullYear();
+  const mm = String(hoy.getMonth()+1).padStart(2,'0');
+  const dd = String(hoy.getDate()).padStart(2,'0');
+  document.getElementById('filtro-fecha').value = `${yyyy}-${mm}-${dd}`;
+  filtroFecha = `${dd}/${mm}/${yyyy}`;
+  cargarTodo(false);
+  refreshTimer = setInterval(() => cargarTodo(false), AUTO_REFRESH_MS);
+});
+
+function fechaHoy() {
+  return new Date().toLocaleDateString('es-CO', { weekday:'long', day:'numeric', month:'long' });
+}
+
+// ----- CARGAR DATOS -----
+async function cargarTodo(mostrarSpinner) {
+  const icon = document.getElementById('ref-icon');
+  icon.classList.add('spinning');
+
+  try {
+    const url = `${API_URL}?action=getDespachos`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    todos = data.despachos || [];
+  } catch (e) {
+    todos = getDemoData();
+    if (mostrarSpinner) toast('Modo demo — configura API_URL con tu URL de Apps Script');
+  }
+
+  poblarConductores();
+  aplicarFiltros();
+  document.getElementById('last-update').textContent = `Actualizado ${new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}`;
+  icon.classList.remove('spinning');
+}
+
+function poblarConductores() {
+  const sel = document.getElementById('filtro-conductor');
+  const actual = sel.value;
+  const conductores = [...new Set(todos.map(d => d.conductor).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">Todos</option>' +
+    conductores.map(c => `<option value="${c}" ${c===actual?'selected':''}>${c}</option>`).join('');
+
+  const selP = document.getElementById('filtro-placa');
+  const actualP = selP.value;
+  const placas = [...new Set(todos.map(d => d.placa).filter(Boolean))].sort();
+  selP.innerHTML = '<option value="">Todas</option>' +
+    placas.map(p => `<option value="${p}" ${p===actualP?'selected':''}>${p}</option>`).join('');
+}
+
+function aplicarFiltros() {
+  filtroFecha = (() => {
+    const v = document.getElementById('filtro-fecha').value;
+    if (!v) return '';
+    const [y,m,d] = v.split('-');
+    return `${d}/${m}/${y}`;
+  })();
+  filtroEstado = document.getElementById('filtro-estado').value;
+  filtroConductor = document.getElementById('filtro-conductor').value;
+  filtroPlaca = document.getElementById('filtro-placa').value;
+
+  filtrados = todos.filter(d => {
+    if (filtroFecha && d.fecha && d.fecha.trim() !== filtroFecha) return false;
+    if (filtroEstado && d.estadoCargue !== filtroEstado) return false;
+    if (filtroConductor && d.conductor !== filtroConductor) return false;
+    if (filtroPlaca && d.placa !== filtroPlaca) return false;
+    return true;
+  });
+
+  document.getElementById('filtro-results').textContent =
+    filtrados.length === todos.length
+      ? `${todos.length} despachos`
+      : `${filtrados.length} de ${todos.length} despachos`;
+
+  selIdx = 0;
+  renderSidebar();
+  if (filtrados.length > 0) renderDetalle(0);
+  else document.getElementById('main-content').innerHTML = '<div class="empty">Sin despachos para los filtros seleccionados</div>';
+}
+
+function limpiarFiltros() {
+  document.getElementById('filtro-fecha').value = '';
+  document.getElementById('filtro-estado').value = '';
+  document.getElementById('filtro-conductor').value = '';
+  document.getElementById('filtro-placa').value = '';
+  filtroFecha = '';
+  filtroEstado = '';
+  filtroConductor = '';
+  filtroPlaca = '';
+  aplicarFiltros();
+  toast('Filtros limpiados');
+}
+
+// ----- SIDEBAR -----
+function renderSidebar() {
+  const body = document.getElementById('sidebar-body');
+  const novedades = filtrados.filter(d => d.estadoCargue === 'Novedad').length;
+
+  document.getElementById('sidebar-count').textContent = `${filtrados.length} despacho${filtrados.length!==1?'s':''}`;
+  const nb = document.getElementById('novedades-badge');
+  if (novedades > 0) { nb.style.display='inline-block'; nb.textContent=`${novedades} novedad${novedades>1?'es':''}`; }
+  else nb.style.display='none';
+
+  if (!filtrados.length) { body.innerHTML='<div class="empty">Sin resultados</div>'; return; }
+
+  body.innerHTML = filtrados.map((d,i) => {
+    const pct = calcPct(d);
+    const cls = d.estadoCargue==='Novedad'?'warn':'';
+    const badgeCls = estadoBadge(d.estadoCargue);
+    const fillColor = d.estadoCargue==='Novedad'?'var(--amber)':d.estadoCargue==='Completado'?'var(--green)':'var(--blue)';
+    return `<div class="d-item ${cls} ${i===selIdx?'sel':''}" onclick="selDespacho(${i})">
+      <div class="d-item-top">
+        <span class="d-placa">${d.placa||'—'}</span>
+        <span class="badge ${badgeCls}">${d.estadoCargue||'Pendiente'}</span>
+      </div>
+      <div class="d-cond">${d.conductor||'—'} · ${d.turno||''}</div>
+      <div class="d-progress"><div class="d-progress-fill" style="width:${pct}%;background:${fillColor}"></div></div>
+      <div class="d-meta">${d.tiendas.filter(t=>t.estado==='completado').length}/${d.tiendas.length} tiendas · ${d.fecha||''}</div>
+    </div>`;
+  }).join('');
+}
+
+// ----- DETALLE -----
+function selDespacho(i) {
+  selIdx = i;
+  renderSidebar();
+  renderDetalle(i);
+}
+
+function renderDetalle(i) {
+  if (!filtrados[i]) { document.getElementById('main-content').innerHTML='<div class="empty">Selecciona un despacho</div>'; return; }
+  const d = filtrados[i];
+  const pct = calcPct(d);
+  const completadas = d.tiendas.filter(t=>t.estado==='completado').length;
+  const novedadesObs = extraerNovedades(d.observaciones);
+  const linkConductor = `${BASE_URL}?id=${d.id}&row=${d.rowIndex}`;
+  const fillColor = d.estadoCargue==='Novedad'?'var(--amber)':d.estadoCargue==='Completado'?'var(--green)':'var(--blue)';
+
+  document.getElementById('main-content').innerHTML = `
+    <div class="detail-hdr">
+      <div>
+        <h2>${d.placa} — ${d.conductor}</h2>
+        <p>${d.cedi} · Turno ${d.turno} · ${d.fecha}</p>
+      </div>
+      <span class="badge ${estadoBadge(d.estadoCargue)}" style="font-size:12px;padding:5px 12px">${d.estadoCargue||'Pendiente'}</span>
+    </div>
+
+    ${novedadesObs.length ? `
+    <div class="card warn-card">
+      <div style="font-size:13px;font-weight:600;color:var(--amber-t);margin-bottom:8px">Novedades reportadas</div>
+      ${novedadesObs.map(n=>`
+        <div class="nov-item">
+          <div class="nov-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2L14 13H2L8 2Z" stroke="var(--amber)" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6v4M8 11.5v.5" stroke="var(--amber)" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div><div class="nov-tipo">${n.tipo}</div><div class="nov-desc">${n.desc}</div><div class="nov-meta">${n.hora}</div></div>
+        </div>`).join('')}
+    </div>` : ''}
+
+    <div class="card">
+      <div class="info-grid">
+        <div class="info-item"><span class="info-lbl">Carga útil</span><span class="info-val">${d.cargaUtil||'—'}</span></div>
+        <div class="info-item"><span class="info-lbl">Muelle</span><span class="info-val">${d.muelle||'—'}</span></div>
+        <div class="info-item"><span class="info-lbl">Pallets</span><span class="info-val">${d.pallet||'—'}</span></div>
+        <div class="info-item"><span class="info-lbl">Preenfriamiento</span><span class="info-val">${d.preenfriamiento||'—'}</span></div>
+        <div class="info-item"><span class="info-lbl">Protocolo</span><span class="info-val">${d.protocolo||'—'}</span></div>
+        <div class="info-item"><span class="info-lbl">Kilómetros</span><span class="info-val">${d.kilometros||'—'}</span></div>
+      </div>
+    </div>
+
+    <div class="section-lbl">Tiempos del despacho</div>
+    <div class="card">
+      <div class="times-grid">
+        <div class="time-box"><div class="time-val">${d.horaOfrecimiento||'—'}</div><div class="time-lbl">Ofrecimiento</div></div>
+        <div class="time-box"><div class="time-val">${d.horaEntradaCedi||'—'}</div><div class="time-lbl">Entrada CEDI</div></div>
+        <div class="time-box highlight"><div class="time-val">${d.horaSalidaCedi||'—'}</div><div class="time-lbl">Salida CEDI</div></div>
+        <div class="time-box"><div class="time-val">${d.horaRetornoCedi||'—'}</div><div class="time-lbl">Retorno CEDI</div></div>
+      </div>
+      ${d.totalTiempoCedi?`<div style="margin-top:10px;font-size:12px;color:var(--gray)">Tiempo total en CEDI: <b style="color:var(--gray-t)">${d.totalTiempoCedi}</b></div>`:''}
+      ${d.demoraRuteo?`<div style="margin-top:4px;font-size:12px;color:var(--amber-t)">Demora en ruteo: <b>${d.demoraRuteo}</b></div>`:''}
+    </div>
+
+    <div class="section-lbl">Tiendas — ${completadas} de ${d.tiendas.length} entregadas</div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="prog-wrap" style="padding:12px 14px 0">
+        <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${fillColor}"></div></div>
+        <div class="prog-txt"><span>${completadas} completadas</span><span>${pct}%</span></div>
+      </div>
+      <table class="tiendas-table" style="margin-top:8px">
+        <thead><tr>
+          <th style="width:36px">#</th>
+          <th>Tienda</th>
+          <th>Cita</th>
+          <th>Llegada</th>
+          <th>Estado</th>
+          <th>Etiqueta</th>
+        </tr></thead>
+        <tbody>
+          ${d.tiendas.map(t => {
+            const numCls = t.estado==='completado'?'tn-ok':t.estado==='activo'?'tn-run':'tn-pend';
+            const badgeT = t.estado==='completado'?'b-ok':t.estado==='activo'?'b-run':'b-pend';
+            const estadoT = t.estado==='completado'?'Entregado':t.estado==='activo'?'En tienda':'Pendiente';
+            const fotoUrl = t.fotoUrl || '';
+            return `<tr>
+              <td><div class="t-num ${numCls}" style="margin:0">${t.numero}</div></td>
+              <td><div style="font-weight:500">${t.nombre}</div><div style="font-size:10px;color:var(--gray)">${t.descripcion}</div></td>
+              <td>${t.horaCita||'—'}</td>
+              <td>${t.horaEnTienda||'—'}</td>
+              <td><span class="badge ${badgeT}">${estadoT}</span></td>
+              <td>${fotoUrl?`<a href="${fotoUrl}" target="_blank" class="foto-link"><svg width="12" height="12" viewBox="0 0 14 14" fill="none"><rect x="1" y="3" width="12" height="9" rx="2" stroke="var(--blue)" stroke-width="1.2"/><circle cx="7" cy="7.5" r="2" stroke="var(--blue)" stroke-width="1.2"/></svg>Ver</a>`:'<span class="no-foto">—</span>'}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    ${d.peajes||d.ruta||d.tramos.length?`
+    <div class="section-lbl">Ruta y tramos</div>
+    <div class="card">
+      <div class="info-grid">
+        <div class="info-item"><span class="info-lbl">Ruta</span><span class="info-val">${d.ruta||'—'}</span></div>
+        <div class="info-item"><span class="info-lbl">Peajes</span><span class="info-val">${d.peajes||'—'}</span></div>
+        <div class="info-item"><span class="info-lbl">Kilómetros</span><span class="info-val">${d.kilometros||'—'}</span></div>
+      </div>
+      ${d.tramos.length?`<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px">${d.tramos.map(t=>`<span class="badge b-pend">Tramo ${t.numero}: ${t.valor}</span>`).join('')}</div>`:''}
+    </div>`:``}
+
+    <div class="section-lbl">Link del conductor</div>
+    <div class="card">
+      <div style="font-size:12px;color:var(--gray);margin-bottom:6px">Envía este link al conductor por WhatsApp:</div>
+      <div class="link-box">
+        <span id="link-text-${i}">${linkConductor}</span>
+        <button class="copy-btn" onclick="copiarLink('${linkConductor}')">Copiar</button>
+      </div>
+    </div>
+
+    <div style="height:20px"></div>
+  `;
+
+  // Métricas arriba del main
+  const metricHtml = `
+    <div class="metrics" style="margin-bottom:16px">
+      <div class="metric m-total"><div class="metric-val">${filtrados.length}</div><div class="metric-lbl">Filtrados</div></div>
+      <div class="metric m-run"><div class="metric-val">${filtrados.filter(x=>x.estadoCargue==='En ruta'||x.estadoCargue==='Cargado').length}</div><div class="metric-lbl">En ruta</div></div>
+      <div class="metric m-ok"><div class="metric-val">${filtrados.filter(x=>x.estadoCargue==='Completado').length}</div><div class="metric-lbl">Completados</div></div>
+      <div class="metric m-warn"><div class="metric-val">${filtrados.filter(x=>x.estadoCargue==='Novedad').length}</div><div class="metric-lbl">Con novedad</div></div>
+    </div>`;
+  document.getElementById('main-content').innerHTML = metricHtml + document.getElementById('main-content').innerHTML;
+}
+
+// ----- HELPERS -----
+function calcPct(d) {
+  if (!d.tiendas.length) return 0;
+  return Math.round(d.tiendas.filter(t=>t.estado==='completado').length / d.tiendas.length * 100);
+}
+
+function estadoBadge(estado) {
+  const map = {'En ruta':'b-run','Cargado':'b-run','Completado':'b-ok','Novedad':'b-warn','Pendiente':'b-pend'};
+  return map[estado] || 'b-pend';
+}
+
+function extraerNovedades(obs) {
+  if (!obs) return [];
+  const matches = [...obs.matchAll(/NOVEDAD \[([^\]]+)\]: ([^-]+) - (.+?)(?=\||NOVEDAD|$)/g)];
+  return matches.map(m => ({ hora: m[1].trim(), tipo: m[2].trim(), desc: m[3].trim() }));
+}
+
+function copiarLink(url) {
+  navigator.clipboard.writeText(url).then(() => toast('Link copiado'));
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ----- DEMO DATA -----
+function getDemoData() {
+  return [
+    { id:'D-1', rowIndex:2, placa:'ABC-123', conductor:'Pedro Ramírez', cedi:'CEDI Mocoa', turno:'Diurno', fecha:'09/04/2026',
+      estadoCargue:'En ruta', cargaUtil:'8.5 ton', muelle:'3', pallet:'12', preenfriamiento:'SI', protocolo:'SI',
+      horaOfrecimiento:'06:00', horaEntradaCedi:'06:15', horaSalidaCedi:'07:30', horaRetornoCedi:'',
+      totalTiempoCedi:'1:15', demoraRuteo:'', kilometros:'142', ruta:'Mocoa-Villagarzón', peajes:'$18.000',
+      observaciones:'', tramos:[{numero:1,valor:'Mocoa-km40'},{numero:2,valor:'km40-Villagarzón'}],
+      tiendas:[
+        {numero:1,nombre:'Supermercado La 14',descripcion:'Refrigerados+secos',horaCita:'09:00',estado:'completado',horaEnTienda:'09:05',fotoUrl:''},
+        {numero:2,nombre:'Tienda Comunal Norte',descripcion:'Secos',horaCita:'10:30',estado:'completado',horaEnTienda:'10:35',fotoUrl:''},
+        {numero:3,nombre:'Minimercado El Sol',descripcion:'Lácteos',horaCita:'11:30',estado:'activo',horaEnTienda:'',fotoUrl:''},
+        {numero:4,nombre:'Distribuidora Central',descripcion:'Mixto',horaCita:'13:00',estado:'pendiente',horaEnTienda:'',fotoUrl:''},
+        {numero:5,nombre:'Tienda Popular Sur',descripcion:'Bebidas',horaCita:'14:00',estado:'pendiente',horaEnTienda:'',fotoUrl:''}
+      ]},
+    { id:'D-2', rowIndex:3, placa:'XYZ-456', conductor:'Luis Perdomo', cedi:'CEDI Mocoa', turno:'Nocturno', fecha:'09/04/2026',
+      estadoCargue:'Novedad', cargaUtil:'6 ton', muelle:'1', pallet:'8', preenfriamiento:'SI', protocolo:'SI',
+      horaOfrecimiento:'04:00', horaEntradaCedi:'04:10', horaSalidaCedi:'05:20', horaRetornoCedi:'',
+      totalTiempoCedi:'1:10', demoraRuteo:'0:10', kilometros:'98', ruta:'Mocoa-Sibundoy', peajes:'$12.000',
+      observaciones:'| NOVEDAD [08:30]: Vía bloqueada - Derrumbe en km 34, desvío por carretera alterna',
+      tramos:[{numero:1,valor:'Mocoa-km34'},{numero:2,valor:'Desvío-Sibundoy'}],
+      tiendas:[
+        {numero:1,nombre:'Almacén del Valle',descripcion:'Secos',horaCita:'07:00',estado:'completado',horaEnTienda:'07:10',fotoUrl:''},
+        {numero:2,nombre:'Tienda Las Américas',descripcion:'Bebidas',horaCita:'08:30',estado:'pendiente',horaEnTienda:'',fotoUrl:''},
+        {numero:3,nombre:'Mercado Central',descripcion:'Mixto',horaCita:'10:00',estado:'pendiente',horaEnTienda:'',fotoUrl:''}
+      ]},
+    { id:'D-3', rowIndex:4, placa:'DEF-789', conductor:'Carlos Muñoz', cedi:'CEDI Mocoa', turno:'Diurno', fecha:'09/04/2026',
+      estadoCargue:'Completado', cargaUtil:'7 ton', muelle:'2', pallet:'10', preenfriamiento:'SI', protocolo:'SI',
+      horaOfrecimiento:'06:30', horaEntradaCedi:'06:40', horaSalidaCedi:'07:50', horaRetornoCedi:'16:30',
+      totalTiempoCedi:'1:10', demoraRuteo:'', kilometros:'115', ruta:'Mocoa-Puerto Asís', peajes:'$22.000',
+      observaciones:'',tramos:[],
+      tiendas:[
+        {numero:1,nombre:'Supermercado Norte',descripcion:'Bebidas',horaCita:'09:00',estado:'completado',horaEnTienda:'09:08',fotoUrl:''},
+        {numero:2,nombre:'Tienda El Progreso',descripcion:'Refrigerados',horaCita:'10:30',estado:'completado',horaEnTienda:'10:28',fotoUrl:''},
+        {numero:3,nombre:'Mercado Sur',descripcion:'Lácteos',horaCita:'12:00',estado:'completado',horaEnTienda:'12:05',fotoUrl:''}
+      ]},
+    { id:'D-4', rowIndex:5, placa:'GHI-321', conductor:'Jorge Torres', cedi:'CEDI Mocoa', turno:'Diurno', fecha:'09/04/2026',
+      estadoCargue:'Pendiente', cargaUtil:'9 ton', muelle:'', pallet:'', preenfriamiento:'', protocolo:'',
+      horaOfrecimiento:'', horaEntradaCedi:'', horaSalidaCedi:'', horaRetornoCedi:'',
+      totalTiempoCedi:'', demoraRuteo:'', kilometros:'', ruta:'', peajes:'',
+      observaciones:'',tramos:[],
+      tiendas:[
+        {numero:1,nombre:'Tienda El Campesino',descripcion:'Mixto',horaCita:'10:00',estado:'pendiente',horaEnTienda:'',fotoUrl:''},
+        {numero:2,nombre:'Almacén Popular',descripcion:'Secos',horaCita:'11:30',estado:'pendiente',horaEnTienda:'',fotoUrl:''}
+      ]}
+  ];
+}
+</script>
+</body>
+</html>
