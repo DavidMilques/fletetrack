@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#185FA5">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>FleteTrack — Conductor</title>
+<style>
+  :root {
+    --blue: #185FA5; --blue-light: #E6F1FB; --blue-text: #0C447C;
+    --green: #1D9E75; --green-light: #E1F5EE; --green-text: #085041;
+    --amber: #BA7517; --amber-light: #FAEEDA; --amber-text: #633806;
+    --red: #E24B4A; --red-light: #FCEBEB; --red-text: #791F1F;
+    --gray: #5F5E5A; --gray-light: #F1EFE8; --gray-text: #2C2C2A;
+    --border: #e0ddd6; --bg: #f8f7f4; --white: #fff;
+    --radius: 10px; --radius-sm: 6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  body { background: var(--bg); color: #1a1a18; min-height: 100vh; }
+
+  /* HEADER */
+  .header { background: var(--blue); color: white; padding: 14px 16px 12px; position: sticky; top: 0; z-index: 10; }
+  .header-top { display: flex; justify-content: space-between; align-items: center; }
+  .header h1 { font-size: 16px; font-weight: 600; }
+  .header p { font-size: 12px; opacity: .8; margin-top: 2px; }
+  .header-badge { background: rgba(255,255,255,.2); font-size: 11px; padding: 3px 8px; border-radius: 20px; }
+
+  /* STEPS */
+  .steps { display: flex; gap: 6px; padding: 12px 16px; background: white; border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .step { display: flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; white-space: nowrap; cursor: pointer; border: 1px solid var(--border); background: white; color: var(--gray); }
+  .step.done { background: var(--green-light); color: var(--green-text); border-color: var(--green); }
+  .step.active { background: var(--blue-light); color: var(--blue-text); border-color: var(--blue); }
+  .step-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+
+  /* CONTENT */
+  .content { padding: 14px 16px; max-width: 480px; margin: 0 auto; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* CARDS */
+  .card { background: white; border-radius: var(--radius); border: 1px solid var(--border); padding: 14px; margin-bottom: 12px; }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--gray-text); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .card-icon { width: 20px; height: 20px; border-radius: 6px; background: var(--blue-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+  /* FIELDS */
+  .field { margin-bottom: 10px; }
+  .field label { display: block; font-size: 11px; font-weight: 500; color: var(--gray); margin-bottom: 4px; }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 14px; background: white; color: #1a1a18; outline: none;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--blue); }
+  .field textarea { height: 70px; resize: none; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .field-static { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 14px; color: #1a1a18; }
+  .field-static.highlight { background: var(--blue-light); border-color: var(--blue); color: var(--blue-text); font-weight: 500; }
+
+  /* CHECKBOX ROW */
+  .check-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; cursor: pointer; }
+  .check-row input[type=checkbox] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--blue); }
+  .check-row label { font-size: 13px; cursor: pointer; flex: 1; }
+
+  /* FOTO */
+  .foto-btn { border: 2px dashed var(--border); border-radius: var(--radius); padding: 16px; text-align: center; cursor: pointer; background: white; width: 100%; margin-bottom: 8px; }
+  .foto-btn:hover { border-color: var(--blue); background: var(--blue-light); }
+  .foto-btn .icon { width: 36px; height: 36px; background: var(--blue-light); border-radius: 50%; margin: 0 auto 6px; display: flex; align-items: center; justify-content: center; }
+  .foto-btn p { font-size: 12px; color: var(--gray); }
+  .foto-preview { border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; position: relative; }
+  .foto-preview img { width: 100%; max-height: 180px; object-fit: cover; display: block; }
+  .foto-preview .del { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,.5); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .foto-ok { background: var(--green-light); border: 1px solid var(--green); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 12px; color: var(--green-text); font-weight: 500; margin-bottom: 8px; text-align: center; }
+  input[type=file] { display: none; }
+
+  /* TIENDAS LIST */
+  .tienda-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 6px; cursor: pointer; background: white; }
+  .tienda-item:hover { border-color: var(--blue); }
+  .tienda-item.done { border-color: var(--green); background: var(--green-light); }
+  .tienda-item.active { border-color: var(--blue); background: var(--blue-light); }
+  .t-num { width: 28px; height: 28px; border-radius: 50%; background: var(--gray-light); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; color: var(--gray-text); }
+  .tienda-item.done .t-num { background: var(--green); color: white; }
+  .tienda-item.active .t-num { background: var(--blue); color: white; }
+  .t-info { flex: 1; }
+  .t-name { font-size: 13px; font-weight: 500; }
+  .t-sub { font-size: 11px; color: var(--gray); margin-top: 1px; }
+  .t-check { font-size: 16px; color: var(--green); }
+
+  /* NOVEDAD TIPOS */
+  .nov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+  .nov-type { padding: 10px 6px; border: 1px solid var(--border); border-radius: var(--radius-sm); text-align: center; font-size: 12px; cursor: pointer; background: white; color: var(--gray-text); }
+  .nov-type.sel { border-color: var(--amber); background: var(--amber-light); color: var(--amber-text); font-weight: 500; }
+
+  /* BOTONES */
+  .btn { width: 100%; padding: 13px; border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 4px; }
+  .btn-primary { background: var(--blue); color: white; }
+  .btn-primary:hover { background: var(--blue-text); }
+  .btn-success { background: var(--green); color: white; }
+  .btn-warning { background: var(--amber); color: white; }
+  .btn-outline { background: white; color: var(--blue); border: 1px solid var(--blue); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1a1a18; color: white; padding: 10px 18px; border-radius: 20px; font-size: 13px; z-index: 100; opacity: 0; transition: opacity .3s; pointer-events: none; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+
+  /* LOADING */
+  .loading { text-align: center; padding: 30px; color: var(--gray); font-size: 13px; }
+  .spinner { width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 8px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ESTADO BADGE */
+  .estado-badge { display: inline-block; font-size: 11px; padding: 3px 8px; border-radius: 10px; font-weight: 500; }
+  .estado-ok { background: var(--green-light); color: var(--green-text); }
+  .estado-run { background: var(--blue-light); color: var(--blue-text); }
+  .estado-warn { background: var(--amber-light); color: var(--amber-text); }
+  .estado-pend { background: var(--gray-light); color: var(--gray); }
+
+  /* RETORNO */
+  .retorno-card { background: var(--green-light); border: 1px solid var(--green); border-radius: var(--radius); padding: 16px; text-align: center; margin-bottom: 12px; }
+  .retorno-card h3 { font-size: 15px; font-weight: 600; color: var(--green-text); margin-bottom: 4px; }
+  .retorno-card p { font-size: 12px; color: var(--green-text); opacity: .8; }
+</style>
+</head>
+<body>
+
+<!-- CONFIGURACIÓN — CAMBIA ESTA URL -->
+<script>
+// ⚠️ REEMPLAZA ESTA URL con la URL de tu Apps Script desplegado
+const API_URL = 'https://script.google.com/macros/s/AKfycbwrCsr-512szUSWdta_bRQ6BOPvg6pckHEPamH_eucuznJgkiksXIlIoXfAltzYxwvs/exec';
+
+// ID del despacho que viene por URL (ej: conductor.html?id=D-1)
+const params = new URLSearchParams(location.search);
+const DESPACHO_ID = params.get('id') || 'D-1';
+const ROW_INDEX = parseInt(params.get('row')) || 2;
+
+let despacho = null;
+let fotosCargadas = {};
+let tiendaActual = null;
+let novTipo = '';
+</script>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1 id="h-placa">FleteTrack</h1>
+      <p id="h-conductor">Cargando...</p>
+    </div>
+    <span class="header-badge" id="h-estado">...</span>
+  </div>
+</div>
+
+<div class="steps" id="steps-bar">
+  <div class="step active" onclick="goScreen('cargue')" id="step-cargue">
+    <div class="step-dot"></div> Cargue
+  </div>
+  <div class="step" onclick="goScreen('tiendas')" id="step-tiendas">
+    <div class="step-dot"></div> Tiendas
+  </div>
+  <div class="step" onclick="goScreen('novedad')" id="step-novedad">
+    <div class="step-dot"></div> Novedad
+  </div>
+  <div class="step" onclick="goScreen('retorno')" id="step-retorno">
+    <div class="step-dot"></div> Retorno
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- CARGUE -->
+  <div class="screen active" id="screen-cargue">
+    <div id="cargue-loading" class="loading"><div class="spinner"></div>Cargando despacho...</div>
+    <div id="cargue-form" style="display:none">
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="#185FA5" stroke-width="1.5"/><path d="M5 8h6M8 5v6" stroke="#185FA5" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          Datos del despacho
+        </div>
+        <div class="field"><label>Conductor</label><div class="field-static highlight" id="f-conductor"></div></div>
+        <div class="field-row">
+          <div class="field"><label>Placa</label><div class="field-static highlight" id="f-placa"></div></div>
+          <div class="field"><label>Turno</label><div class="field-static" id="f-turno"></div></div>
+        </div>
+        <div class="field"><label>CEDI</label><div class="field-static" id="f-cedi"></div></div>
+        <div class="field"><label>Carga útil</label><div class="field-static" id="f-carga"></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Preenfriamiento y protocolo</div>
+        <div class="check-row">
+          <input type="checkbox" id="chk-preen">
+          <label for="chk-preen">Preenfriamiento realizado</label>
+        </div>
+        <div class="check-row">
+          <input type="checkbox" id="chk-proto">
+          <label for="chk-proto">Protocolo de cargue cumplido</label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Tiempos del despacho</div>
+        <div class="field-row">
+          <div class="field"><label>Hora ofrecimiento</label><div class="field-static" id="t-ofrec">—</div></div>
+          <div class="field"><label>Hora entrada CEDI</label><div class="field-static" id="t-entrada">—</div></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Hora de cargue</label><div class="field-static" id="t-cargue">—</div></div>
+          <div class="field"><label>Hora salida CEDI</label><div class="field-static" id="t-salida">—</div></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Muelle #</label><div class="field-static" id="t-muelle">—</div></div>
+          <div class="field"><label>Pallets</label><div class="field-static" id="t-pallet">—</div></div>
+        </div>
+        <div style="margin-top:8px;padding:8px 10px;background:var(--blue-light,#E6F1FB);border-radius:6px;font-size:11px;color:var(--blue-text,#0C447C)">
+          Estos tiempos son registrados por el operador. Solo puedes reportar novedades.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Foto del vehículo cargado</div>
+        <input type="file" id="file-cargue" accept="image/*" capture="environment" onchange="previewFoto('file-cargue','prev-cargue','foto-ok-cargue')">
+        <div id="prev-cargue"></div>
+        <div id="foto-ok-cargue" class="foto-ok" style="display:none">Foto registrada</div>
+        <button class="foto-btn" onclick="document.getElementById('file-cargue').click()">
+          <div class="icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="2" y="6" width="16" height="12" rx="2.5" stroke="#185FA5" stroke-width="1.5"/><circle cx="10" cy="12" r="3" stroke="#185FA5" stroke-width="1.5"/><path d="M6 6V5a2 2 0 012-2h4a2 2 0 012 2v1" stroke="#185FA5" stroke-width="1.5"/></svg></div>
+          <p>Tomar foto del vehículo</p>
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Observaciones</div>
+        <div class="field"><textarea id="obs-cargue" placeholder="Novedades al momento del cargue..."></textarea></div>
+      </div>
+
+      <button class="btn btn-primary" onclick="confirmarCargue()">Confirmar cargue y salir a ruta</button>
+    </div>
+  </div>
+
+  <!-- TIENDAS -->
+  <div class="screen" id="screen-tiendas">
+    <div id="tiendas-lista"></div>
+    <div id="tienda-form" style="display:none">
+      <div class="card">
+        <div class="card-title" id="tf-title">Tienda</div>
+        <div class="field"><label>Nombre</label><div class="field-static" id="tf-nombre"></div></div>
+        <div class="field"><label>Descripción / Productos</label><div class="field-static" id="tf-desc"></div></div>
+        <div class="field-row">
+          <div class="field"><label>Hora cita</label><div class="field-static" id="tf-cita"></div></div>
+          <div class="field"><label>Hora llegada real</label><input type="time" id="tf-llegada"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Foto de la etiqueta</div>
+        <input type="file" id="file-tienda" accept="image/*" capture="environment" onchange="previewFoto('file-tienda','prev-tienda','foto-ok-tienda')">
+        <div id="prev-tienda"></div>
+        <div id="foto-ok-tienda" class="foto-ok" style="display:none">Etiqueta registrada</div>
+        <button class="foto-btn" onclick="document.getElementById('file-tienda').click()">
+          <div class="icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="2" y="6" width="16" height="12" rx="2.5" stroke="#185FA5" stroke-width="1.5"/><circle cx="10" cy="12" r="3" stroke="#185FA5" stroke-width="1.5"/><path d="M6 6V5a2 2 0 012-2h4a2 2 0 012 2v1" stroke="#185FA5" stroke-width="1.5"/></svg></div>
+          <p>Fotografiar etiqueta de entrega</p>
+        </button>
+      </div>
+      <div class="card">
+        <div class="card-title">Observación en tienda</div>
+        <div class="field"><textarea id="tf-obs" placeholder="Novedad en esta tienda..."></textarea></div>
+      </div>
+      <button class="btn btn-success" onclick="confirmarTienda()">Confirmar entrega</button>
+      <button class="btn btn-outline" style="margin-top:8px" onclick="mostrarListaTiendas()">Volver a lista</button>
+    </div>
+  </div>
+
+  <!-- NOVEDAD -->
+  <div class="screen" id="screen-novedad">
+
+    <!-- Sub-tabs -->
+    <div style="display:flex;gap:0;background:white;border-bottom:1px solid var(--border);margin-bottom:12px">
+      <div id="subtab-cargue" onclick="showSubtab('cargue')"
+        style="flex:1;padding:10px;text-align:center;font-size:12px;font-weight:600;cursor:pointer;color:var(--blue-text,#0C447C);border-bottom:2px solid var(--blue,#185FA5)">
+        Novedad de cargue
+      </div>
+      <div id="subtab-ruta" onclick="showSubtab('ruta')"
+        style="flex:1;padding:10px;text-align:center;font-size:12px;font-weight:600;cursor:pointer;color:var(--gray,#5F5E5A);border-bottom:2px solid transparent">
+        Novedad en ruta
+      </div>
+    </div>
+
+    <!-- NOVEDADES DE CARGUE (cantidades desde tu hoja) -->
+    <div id="subnov-cargue">
+      <div class="card">
+        <div class="card-title">Novedades de cargue</div>
+        <div style="font-size:12px;color:var(--gray,#5F5E5A);margin-bottom:10px">Ingresa la cantidad de cada novedad presentada. Deja en 0 si no aplica.</div>
+        <div id="campos-novedades-cargue">
+          <div style="text-align:center;padding:16px;color:var(--gray)">Cargando categorías...</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Observación general</div>
+        <div class="field"><textarea id="nov-cargue-obs" placeholder="Observaciones adicionales del cargue..."></textarea></div>
+      </div>
+      <button class="btn btn-warning" onclick="enviarNovedadCargue()">Registrar novedades de cargue</button>
+    </div>
+
+    <!-- NOVEDADES EN RUTA -->
+    <div id="subnov-ruta" style="display:none">
+      <div class="card">
+        <div class="card-title">Tipo de novedad</div>
+        <div class="nov-grid">
+          <div class="nov-type" onclick="selNovTipo(this,'Vía bloqueada')">Vía bloqueada</div>
+          <div class="nov-type" onclick="selNovTipo(this,'Avería vehículo')">Avería vehículo</div>
+          <div class="nov-type" onclick="selNovTipo(this,'Tienda cerrada')">Tienda cerrada</div>
+          <div class="nov-type" onclick="selNovTipo(this,'Retraso tráfico')">Retraso tráfico</div>
+          <div class="nov-type" onclick="selNovTipo(this,'Demora en CEDI')">Demora en CEDI</div>
+          <div class="nov-type" onclick="selNovTipo(this,'Otra')">Otra</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Tienda afectada (si aplica)</div>
+        <div class="field"><select id="nov-tienda"><option value="">— General / ninguna —</option></select></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Descripción</div>
+        <div class="field"><textarea id="nov-desc" placeholder="Describe la situación..."></textarea></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Foto evidencia (opcional)</div>
+        <input type="file" id="file-novedad" accept="image/*" capture="environment" onchange="previewFoto('file-novedad','prev-novedad','foto-ok-novedad')">
+        <div id="prev-novedad"></div>
+        <div id="foto-ok-novedad" class="foto-ok" style="display:none">Foto registrada</div>
+        <button class="foto-btn" onclick="document.getElementById('file-novedad').click()">
+          <div class="icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="2" y="6" width="16" height="12" rx="2.5" stroke="#185FA5" stroke-width="1.5"/><circle cx="10" cy="12" r="3" stroke="#185FA5" stroke-width="1.5"/><path d="M6 6V5a2 2 0 012-2h4a2 2 0 012 2v1" stroke="#185FA5" stroke-width="1.5"/></svg></div>
+          <p>Foto opcional</p>
+        </button>
+      </div>
+      <button class="btn btn-warning" onclick="enviarNovedad()">Enviar novedad al operador</button>
+    </div>
+  </div>
+
+  <!-- RETORNO -->
+  <div class="screen" id="screen-retorno">
+    <div class="retorno-card">
+      <h3>Cierre de despacho</h3>
+      <p>Registra tu retorno al CEDI</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Resumen del despacho</div>
+      <div id="resumen-tiendas"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Hora de retorno al CEDI</div>
+      <div class="field"><input type="time" id="t-retorno"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Observaciones finales</div>
+      <div class="field"><textarea id="obs-retorno" placeholder="Observaciones del despacho completo..."></textarea></div>
+    </div>
+    <button class="btn btn-success" onclick="confirmarRetorno()">Confirmar retorno y cerrar despacho</button>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ----- INIT -----
+window.addEventListener('DOMContentLoaded', () => {
+  cargarDespacho();
+  cargarCategorias();
+  setHoraActual('t-retorno');
+});
+
+// ----- CATEGORÍAS NOVEDADES DE CARGUE -----
+let categoriasNov = [];
+async function cargarCategorias() {
+  try {
+    const res = await fetch(`${API_URL}?action=getNovedadesCat`);
+    const data = await res.json();
+    categoriasNov = data.categorias || [];
+  } catch(e) {
+    categoriasNov = ['MUELLE','PALLET CARGADAS','PALLET EN RESERVA','ESTIBAS NO LOCALIZADAS',
+      'PALLET SIN VINIPEL','PALLET MAL CONFORMADAS','PALLET POR REMONTES','CONTENEDORES'];
+  }
+  renderCamposNovedades();
+}
+
+function renderCamposNovedades() {
+  const cont = document.getElementById('campos-novedades-cargue');
+  if (!categoriasNov.length) { cont.innerHTML = '<div style="color:var(--gray);font-size:12px">Sin categorías disponibles</div>'; return; }
+  cont.innerHTML = categoriasNov.map(cat => {
+    if (cat.toUpperCase() === 'OBSERVACIONES') return '';
+    return `<div class="field">
+      <label>${cat}</label>
+      <input type="number" id="nov-cat-${cat.replace(/\s/g,'_')}" min="0" value="0" placeholder="0">
+    </div>`;
+  }).join('');
+}
+
+// ----- SUB-TABS NOVEDAD -----
+function showSubtab(tab) {
+  const isCargue = tab === 'cargue';
+  document.getElementById('subnov-cargue').style.display = isCargue ? 'block' : 'none';
+  document.getElementById('subnov-ruta').style.display   = isCargue ? 'none' : 'block';
+  const stCargue = document.getElementById('subtab-cargue');
+  const stRuta   = document.getElementById('subtab-ruta');
+  stCargue.style.color       = isCargue ? 'var(--blue-text,#0C447C)' : 'var(--gray,#5F5E5A)';
+  stCargue.style.borderBottomColor = isCargue ? 'var(--blue,#185FA5)' : 'transparent';
+  stRuta.style.color         = isCargue ? 'var(--gray,#5F5E5A)' : 'var(--amber-text,#633806)';
+  stRuta.style.borderBottomColor   = isCargue ? 'transparent' : 'var(--amber,#BA7517)';
+}
+
+// ----- ENVIAR NOVEDAD DE CARGUE -----
+async function enviarNovedadCargue() {
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = 'Registrando...';
+
+  const valores = {};
+  categoriasNov.forEach(cat => {
+    if (cat.toUpperCase() === 'OBSERVACIONES') return;
+    const el = document.getElementById(`nov-cat-${cat.replace(/\s/g,'_')}`);
+    if (el) valores[cat] = parseInt(el.value) || 0;
+  });
+  const obs = document.getElementById('nov-cargue-obs').value.trim();
+  if (obs) valores['OBSERVACIONES'] = obs;
+
+  await apiPost({
+    action: 'registrarNovedadCargue',
+    rowIndex: despacho.rowIndex,
+    protocolo: despacho.protocolo,
+    placa: despacho.placa,
+    conductor: despacho.conductor,
+    fecha: despacho.fecha,
+    dia: despacho.dia,
+    turno: despacho.turno,
+    valores
+  });
+
+  toast('Novedades de cargue registradas');
+  // Limpiar campos
+  categoriasNov.forEach(cat => {
+    const el = document.getElementById(`nov-cat-${cat.replace(/\s/g,'_')}`);
+    if (el) el.value = 0;
+  });
+  document.getElementById('nov-cargue-obs').value = '';
+  btn.disabled = false;
+  btn.textContent = 'Registrar novedades de cargue';
+}
+
+function setHoraActual(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const now = new Date();
+  el.value = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+}
+
+// ----- CARGAR DESPACHO DESDE SHEETS -----
+async function cargarDespacho() {
+  try {
+    const url = `${API_URL}?action=getDespacho&id=${DESPACHO_ID}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    despacho = data.despacho;
+    renderDespacho();
+  } catch (e) {
+    // Modo demo si no hay API configurada
+    despacho = getDemoDespacho();
+    renderDespacho();
+    toast('Modo demo — configura la URL del API');
+  }
+}
+
+function getDemoDespacho() {
+  return {
+    id: 'D-1', rowIndex: 2, placa: 'ABC-123', conductor: 'Pedro Ramírez',
+    cedi: 'CEDI Mocoa', turno: 'Diurno', cargaUtil: '8.5 ton',
+    estadoCargue: 'Pendiente', muelle: '3', pallet: '12',
+    preenfriamiento: '', protocolo: '',
+    horaCargue: '', horaOfrecimiento: '', horaEntradaCedi: '', horaSalidaCedi: '',
+    cantidadTiendas: 4,
+    tiendas: [
+      { numero:1, nombre:'Supermercado La 14', descripcion:'Refrigerados + secos', horaCita:'09:00', estado:'pendiente' },
+      { numero:2, nombre:'Tienda Comunal Norte', descripcion:'Secos varios', horaCita:'10:30', estado:'pendiente' },
+      { numero:3, nombre:'Minimercado El Sol', descripcion:'Lácteos', horaCita:'11:30', estado:'pendiente' },
+      { numero:4, nombre:'Distribuidora Central', descripcion:'Mixto', horaCita:'13:00', estado:'pendiente' }
+    ]
+  };
+}
+
+function renderDespacho() {
+  document.getElementById('h-placa').textContent = despacho.placa;
+  document.getElementById('h-conductor').textContent = despacho.conductor;
+  document.getElementById('h-estado').textContent = despacho.estadoCargue || 'Pendiente';
+  document.getElementById('f-conductor').textContent = despacho.conductor;
+  document.getElementById('f-placa').textContent = despacho.placa;
+  document.getElementById('f-turno').textContent = despacho.turno;
+  document.getElementById('f-cedi').textContent = despacho.cedi;
+  document.getElementById('f-carga').textContent = despacho.cargaUtil;
+  // Horas — solo lectura, vienen formateadas desde el Apps Script
+  document.getElementById('t-ofrec').textContent  = despacho.horaOfrecimiento  || '—';
+  document.getElementById('t-entrada').textContent = despacho.horaEntradaCedi   || '—';
+  document.getElementById('t-cargue').textContent  = despacho.horaCargue        || '—';
+  document.getElementById('t-salida').textContent  = despacho.horaSalidaCedi    || '—';
+  document.getElementById('t-muelle').textContent  = despacho.muelle            || '—';
+  document.getElementById('t-pallet').textContent  = despacho.pallet            || '—';
+  if (despacho.preenfriamiento === 'SI') document.getElementById('chk-preen').checked = true;
+  if (despacho.protocolo === 'SI') document.getElementById('chk-proto').checked = true;
+  document.getElementById('cargue-loading').style.display = 'none';
+  document.getElementById('cargue-form').style.display = 'block';
+  renderListaTiendas();
+  renderSelectNovedad();
+  renderResumen();
+}
+
+// ----- TIENDAS -----
+function renderListaTiendas() {
+  const lista = document.getElementById('tiendas-lista');
+  if (!despacho || !despacho.tiendas.length) {
+    lista.innerHTML = '<div class="loading">Sin tiendas asignadas</div>';
+    return;
+  }
+  const completadas = despacho.tiendas.filter(t => t.estado === 'completado').length;
+  lista.innerHTML = `
+    <div class="card" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:13px;font-weight:600">Tiendas del despacho</span>
+        <span class="estado-badge estado-run">${completadas} / ${despacho.tiendas.length}</span>
+      </div>
+      <div style="height:5px;background:#e0ddd6;border-radius:3px;overflow:hidden;margin-bottom:4px">
+        <div style="height:100%;background:#1D9E75;border-radius:3px;width:${Math.round(completadas/despacho.tiendas.length*100)}%;transition:width .4s"></div>
+      </div>
+    </div>
+    ${despacho.tiendas.map(t => `
+      <div class="tienda-item ${t.estado}" onclick="abrirTienda(${t.numero})">
+        <div class="t-num">${t.numero}</div>
+        <div class="t-info">
+          <div class="t-name">${t.nombre}</div>
+          <div class="t-sub">${t.descripcion} · Cita ${t.horaCita}</div>
+        </div>
+        ${t.estado === 'completado' ? '<div class="t-check">✓</div>' : '<div style="font-size:11px;color:#888">→</div>'}
+      </div>`).join('')}`;
+}
+
+function abrirTienda(n) {
+  tiendaActual = despacho.tiendas.find(t => t.numero === n);
+  if (!tiendaActual) return;
+  document.getElementById('tiendas-lista').style.display = 'none';
+  document.getElementById('tienda-form').style.display = 'block';
+  document.getElementById('tf-title').textContent = `Tienda ${n} — ${tiendaActual.nombre}`;
+  document.getElementById('tf-nombre').textContent = tiendaActual.nombre;
+  document.getElementById('tf-desc').textContent = tiendaActual.descripcion;
+  document.getElementById('tf-cita').textContent = tiendaActual.horaCita;
+  document.getElementById('tf-obs').value = '';
+  document.getElementById('prev-tienda').innerHTML = '';
+  document.getElementById('foto-ok-tienda').style.display = 'none';
+  setHoraActual('tf-llegada');
+  fotosCargadas['tienda'] = null;
+}
+
+function mostrarListaTiendas() {
+  tiendaActual = null;
+  document.getElementById('tiendas-lista').style.display = 'block';
+  document.getElementById('tienda-form').style.display = 'none';
+}
+
+function renderSelectNovedad() {
+  const sel = document.getElementById('nov-tienda');
+  const opts = despacho.tiendas.map(t => `<option value="${t.numero}">${t.numero}. ${t.nombre}</option>`).join('');
+  sel.innerHTML = '<option value="">— General / ninguna —</option>' + opts;
+}
+
+function renderResumen() {
+  const el = document.getElementById('resumen-tiendas');
+  if (!el || !despacho) return;
+  el.innerHTML = despacho.tiendas.map(t => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #e0ddd6;font-size:12px">
+      <span>${t.numero}. ${t.nombre}</span>
+      <span class="estado-badge ${t.estado==='completado'?'estado-ok':'estado-pend'}">${t.estado==='completado'?'Entregado':'Pendiente'}</span>
+    </div>`).join('');
+}
+
+// ----- FOTOS -----
+function previewFoto(inputId, prevId, okId) {
+  const file = document.getElementById(inputId).files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const key = inputId.replace('file-','');
+    fotosCargadas[key] = { base64: e.target.result.split(',')[1], nombre: file.name, mimeType: file.type };
+    document.getElementById(prevId).innerHTML = `
+      <div class="foto-preview">
+        <img src="${e.target.result}" alt="foto">
+        <button class="del" onclick="borrarFoto('${inputId}','${prevId}','${okId}')">✕</button>
+      </div>`;
+    document.getElementById(okId).style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function borrarFoto(inputId, prevId, okId) {
+  document.getElementById(inputId).value = '';
+  document.getElementById(prevId).innerHTML = '';
+  document.getElementById(okId).style.display = 'none';
+  const key = inputId.replace('file-','');
+  fotosCargadas[key] = null;
+}
+
+async function subirFotoAPI(key) {
+  const f = fotosCargadas[key];
+  if (!f) return null;
+  try {
+    const res = await apiPost({ action:'subirFoto', base64:f.base64, nombre:f.nombre, mimeType:f.mimeType });
+    return res.url || null;
+  } catch { return null; }
+}
+
+// ----- ACCIONES -----
+async function confirmarCargue() {
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+  const fotoUrl = await subirFotoAPI('cargue');
+  await apiPost({
+    action: 'registrarCargue',
+    rowIndex: despacho.rowIndex,
+    estadoCargue: 'Cargado',
+    preenfriamiento: document.getElementById('chk-preen').checked,
+    protocolo: document.getElementById('chk-proto').checked,
+    observaciones: document.getElementById('obs-cargue').value,
+    fotoUrl
+  });
+  toast('Cargue confirmado. ¡Buen viaje!');
+  document.getElementById('step-cargue').classList.remove('active');
+  document.getElementById('step-cargue').classList.add('done');
+  document.getElementById('step-tiendas').classList.add('active');
+  setTimeout(() => goScreen('tiendas'), 1200);
+  btn.disabled = false;
+  btn.textContent = 'Confirmar cargue y salir a ruta';
+}
+
+async function confirmarTienda() {
+  if (!tiendaActual) return;
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+  const fotoUrl = await subirFotoAPI('tienda');
+  await apiPost({
+    action: 'registrarTienda',
+    rowIndex: despacho.rowIndex,
+    numeroTienda: tiendaActual.numero,
+    horaLlegada: document.getElementById('tf-llegada').value,
+    observacionTienda: document.getElementById('tf-obs').value,
+    fotoUrl,
+    placa: despacho.placa,
+    conductor: despacho.conductor
+  });
+  tiendaActual.estado = 'completado';
+  tiendaActual.horaEnTienda = document.getElementById('tf-llegada').value;
+  toast(`Tienda ${tiendaActual.numero} confirmada`);
+  mostrarListaTiendas();
+  renderListaTiendas();
+  renderResumen();
+  btn.disabled = false;
+  btn.textContent = 'Confirmar entrega';
+}
+
+async function enviarNovedad() {
+  if (!novTipo) { toast('Selecciona el tipo de novedad'); return; }
+  const desc = document.getElementById('nov-desc').value.trim();
+  if (!desc) { toast('Escribe una descripción'); return; }
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+  const fotoUrl = await subirFotoAPI('novedad');
+  await apiPost({
+    action: 'registrarNovedad',
+    rowIndex: despacho.rowIndex,
+    tipo: novTipo,
+    descripcion: desc,
+    tiendaAfectada: document.getElementById('nov-tienda').value,
+    fotoUrl,
+    placa: despacho.placa,
+    conductor: despacho.conductor
+  });
+  toast('Novedad enviada al operador');
+  document.getElementById('nov-desc').value = '';
+  document.querySelectorAll('.nov-type').forEach(n => n.classList.remove('sel'));
+  novTipo = '';
+  btn.disabled = false;
+  btn.textContent = 'Enviar novedad al operador';
+}
+
+async function confirmarRetorno() {
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = 'Cerrando despacho...';
+  await apiPost({
+    action: 'registrarCargue',
+    rowIndex: despacho.rowIndex,
+    estadoCargue: 'Completado',
+    horaRetornoCedi: document.getElementById('t-retorno').value,
+    observaciones: document.getElementById('obs-retorno').value
+  });
+  toast('Despacho cerrado. ¡Buen trabajo!');
+  btn.disabled = false;
+  btn.textContent = '¡Despacho cerrado!';
+}
+
+// ----- UI HELPERS -----
+function goScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step-' + name).classList.add('active');
+}
+
+function selNovTipo(el, tipo) {
+  document.querySelectorAll('.nov-type').forEach(n => n.classList.remove('sel'));
+  el.classList.add('sel');
+  novTipo = tipo;
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ----- API -----
+async function apiPost(data) {
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+    return await res.json();
+  } catch {
+    toast('Sin conexión — se reintentará');
+    return { error: 'offline' };
+  }
+}
+</script>
+</body>
+</html>
