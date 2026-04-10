@@ -128,7 +128,7 @@
 <!-- CONFIGURACIÓN — CAMBIA ESTA URL -->
 <script>
 // ⚠️ REEMPLAZA ESTA URL con la URL de tu Apps Script desplegado
-const API_URL = 'https://script.google.com/macros/s/AKfycbzzFoFqCW9ing84bgkw8tMzOBMhDdr-K38WOOuvvHrrJ9HHQw654542VydM5rgaFH2P/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbye8Q7HJzNAcnXrajx8O9GBXiMmuUO7iy0XB7u0mF180mjoyCPCoLVU65wsVBl6SlEO/exec';
 
 // ID del despacho que viene por URL (ej: conductor.html?id=D-1)
 const params = new URLSearchParams(location.search);
@@ -199,18 +199,21 @@ let novTipo = '';
       </div>
 
       <div class="card">
-        <div class="card-title">Tiempos de cargue</div>
+        <div class="card-title">Tiempos del despacho</div>
         <div class="field-row">
-          <div class="field"><label>Hora ofrecimiento</label><input type="time" id="t-ofrec"></div>
-          <div class="field"><label>Hora entrada CEDI</label><input type="time" id="t-entrada"></div>
+          <div class="field"><label>Hora ofrecimiento</label><div class="field-static" id="t-ofrec">—</div></div>
+          <div class="field"><label>Hora entrada CEDI</label><div class="field-static" id="t-entrada">—</div></div>
         </div>
         <div class="field-row">
-          <div class="field"><label>Hora de cargue</label><input type="time" id="t-cargue"></div>
-          <div class="field"><label>Hora salida CEDI</label><input type="time" id="t-salida"></div>
+          <div class="field"><label>Hora de cargue</label><div class="field-static" id="t-cargue">—</div></div>
+          <div class="field"><label>Hora salida CEDI</label><div class="field-static" id="t-salida">—</div></div>
         </div>
         <div class="field-row">
-          <div class="field"><label>Muelle #</label><input type="number" id="t-muelle" placeholder="0"></div>
-          <div class="field"><label>Pallets</label><input type="number" id="t-pallet" placeholder="0"></div>
+          <div class="field"><label>Muelle #</label><div class="field-static" id="t-muelle">—</div></div>
+          <div class="field"><label>Pallets</label><div class="field-static" id="t-pallet">—</div></div>
+        </div>
+        <div style="margin-top:8px;padding:8px 10px;background:var(--blue-light,#E6F1FB);border-radius:6px;font-size:11px;color:var(--blue-text,#0C447C)">
+          Estos tiempos son registrados por el operador. Solo puedes reportar novedades.
         </div>
       </div>
 
@@ -329,9 +332,6 @@ let novTipo = '';
 // ----- INIT -----
 window.addEventListener('DOMContentLoaded', () => {
   cargarDespacho();
-  setHoraActual('t-ofrec');
-  setHoraActual('t-entrada');
-  setHoraActual('t-cargue');
   setHoraActual('t-retorno');
 });
 
@@ -385,8 +385,13 @@ function renderDespacho() {
   document.getElementById('f-turno').textContent = despacho.turno;
   document.getElementById('f-cedi').textContent = despacho.cedi;
   document.getElementById('f-carga').textContent = despacho.cargaUtil;
-  if (despacho.muelle) document.getElementById('t-muelle').value = despacho.muelle;
-  if (despacho.pallet) document.getElementById('t-pallet').value = despacho.pallet;
+  // Horas — solo lectura, vienen formateadas desde el Apps Script
+  document.getElementById('t-ofrec').textContent  = despacho.horaOfrecimiento  || '—';
+  document.getElementById('t-entrada').textContent = despacho.horaEntradaCedi   || '—';
+  document.getElementById('t-cargue').textContent  = despacho.horaCargue        || '—';
+  document.getElementById('t-salida').textContent  = despacho.horaSalidaCedi    || '—';
+  document.getElementById('t-muelle').textContent  = despacho.muelle            || '—';
+  document.getElementById('t-pallet').textContent  = despacho.pallet            || '—';
   if (despacho.preenfriamiento === 'SI') document.getElementById('chk-preen').checked = true;
   if (despacho.protocolo === 'SI') document.getElementById('chk-proto').checked = true;
   document.getElementById('cargue-loading').style.display = 'none';
@@ -508,12 +513,6 @@ async function confirmarCargue() {
     action: 'registrarCargue',
     rowIndex: despacho.rowIndex,
     estadoCargue: 'Cargado',
-    horaCargue: document.getElementById('t-cargue').value,
-    horaOfrecimiento: document.getElementById('t-ofrec').value,
-    horaEntradaCedi: document.getElementById('t-entrada').value,
-    horaSalidaCedi: document.getElementById('t-salida').value,
-    muelle: document.getElementById('t-muelle').value,
-    pallet: document.getElementById('t-pallet').value,
     preenfriamiento: document.getElementById('chk-preen').checked,
     protocolo: document.getElementById('chk-proto').checked,
     observaciones: document.getElementById('obs-cargue').value,
