@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FleteTrack — Informes</title>
+<style>
+:root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;--green:#1D9E75;--green-l:#E1F5EE;--green-t:#085041;--amber:#BA7517;--amber-l:#FAEEDA;--amber-t:#633806;--red:#E24B4A;--red-l:#FCEBEB;--border:#e0ddd6;--bg:#f8f7f4;--gray:#5F5E5A;--gray-l:#F1EFE8;--gray-t:#2C2C2A;--r:10px;--rs:6px}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{background:var(--bg);color:#1a1a18}
+.topbar{background:var(--blue);color:white;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:20}
+.topbar h1{font-size:16px;font-weight:600}
+.topbar-nav{display:flex;gap:4px}
+.nav-link{background:rgba(255,255,255,.15);border:none;color:white;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;text-decoration:none}
+.nav-link:hover{background:rgba(255,255,255,.25)}
+.filtros{background:white;border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fg{display:flex;align-items:center;gap:6px}
+.fg label{font-size:11px;font-weight:600;color:var(--gray)}
+.fg input{font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:var(--rs);background:white;color:#1a1a18;outline:none}
+.fg input:focus{border-color:var(--blue)}
+.content{padding:16px 20px}
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:16px;background:white;padding:0;position:sticky;top:52px;z-index:10}
+.tab-btn{padding:10px 18px;font-size:12px;font-weight:500;color:var(--gray);cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap}
+.tab-btn.sel{color:var(--blue);border-bottom-color:var(--blue)}
+.card{background:white;border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.card-title{font-size:13px;font-weight:600;color:var(--gray-t);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.export-btn{background:var(--blue);color:white;border:none;padding:5px 12px;border-radius:var(--rs);font-size:11px;cursor:pointer;font-weight:500}
+.export-btn:hover{background:var(--blue-t)}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{font-size:10px;font-weight:600;color:var(--gray);text-align:left;padding:6px 8px;border-bottom:2px solid var(--border);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;background:white;position:sticky;top:0}
+td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg)}
+.badge{display:inline-block;font-size:10px;padding:2px 6px;border-radius:8px;font-weight:500}
+.b-ok{background:var(--green-l);color:var(--green-t)}
+.b-tard{background:var(--red-l);color:var(--red-t)}
+.b-na{background:var(--gray-l);color:var(--gray)}
+.tbl-wrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--border)}
+.loading{text-align:center;padding:30px;color:var(--gray)}
+.spinner{width:26px;height:26px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 8px}
+.empty{text-align:center;padding:30px;color:var(--gray);font-size:12px}
+.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.scard{background:white;border:1px solid var(--border);border-radius:var(--r);padding:12px}
+.sval{font-size:20px;font-weight:600}.slbl{font-size:10px;color:var(--gray);margin-top:2px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a18;color:white;padding:9px 16px;border-radius:20px;font-size:12px;z-index:100;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbwjmtxnE3I0JlB3m4-7pTATRmDMJPyIMQ5uq9WLu6nnPIOcO45ZKRF6Vhh8QZm36BkK/exec';
+const DASH_URL = 'https://davidmilques.github.io/fletetrack/dashboard_v2.html';
+const STATS_URL = 'https://davidmilques.github.io/fletetrack/estadisticas.html';
+let datos = null;
+let tabActivo = 'servicio';
+</script>
+
+<div class="topbar">
+  <h1>FleteTrack — Informes</h1>
+  <div class="topbar-nav">
+    <a class="nav-link" id="link-dash" href="#">Dashboard</a>
+    <a class="nav-link" id="link-stats" href="#">Estadísticas</a>
+  </div>
+</div>
+
+<div class="filtros">
+  <div class="fg"><label>Desde</label><input type="date" id="f-desde"></div>
+  <div class="fg"><label>Hasta</label><input type="date" id="f-hasta"></div>
+  <button style="padding:5px 14px;background:var(--blue);color:white;border:none;border-radius:var(--rs);font-size:12px;cursor:pointer;font-weight:500" onclick="cargar()">Generar informes</button>
+  <span style="font-size:11px;color:var(--gray);margin-left:auto" id="f-info"></span>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn sel" onclick="showTab('servicio',this)">Nivel de servicio</button>
+  <button class="tab-btn" onclick="showTab('km',this)">Kilómetros</button>
+</div>
+
+<div class="content">
+  <div id="tab-servicio">
+    <div class="summary" id="sum-servicio"></div>
+    <div class="card">
+      <div class="card-title">
+        Informe nivel de servicio
+        <button class="export-btn" onclick="exportarCSV('servicio')">Exportar CSV</button>
+      </div>
+      <div class="tbl-wrap" id="tbl-servicio"><div class="loading"><div class="spinner"></div>Genera el informe con el botón de arriba</div></div>
+    </div>
+  </div>
+  <div id="tab-km" style="display:none">
+    <div class="summary" id="sum-km"></div>
+    <div class="card">
+      <div class="card-title">
+        Informe kilómetros
+        <button class="export-btn" onclick="exportarCSV('km')">Exportar CSV</button>
+      </div>
+      <div class="tbl-wrap" id="tbl-km"><div class="loading"><div class="spinner"></div>Genera el informe con el botón de arriba</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+document.getElementById('link-dash').href  = DASH_URL;
+document.getElementById('link-stats').href = STATS_URL;
+
+window.addEventListener('DOMContentLoaded',()=>{
+  const hoy=new Date();
+  document.getElementById('f-hasta').value=fmtInput(hoy);
+  const desde=new Date(hoy);desde.setDate(1);
+  document.getElementById('f-desde').value=fmtInput(desde);
+});
+
+function fmtInput(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function fmtApi(v){if(!v)return'';const[y,m,d]=v.split('-');return`${d}/${m}/${y}`;}
+
+async function cargar(){
+  const desde=fmtApi(document.getElementById('f-desde').value);
+  const hasta=fmtApi(document.getElementById('f-hasta').value);
+  document.getElementById('f-info').textContent='Cargando...';
+  try{
+    const r=await fetch(`${API_URL}?action=getInformes&fechaDesde=${desde}&fechaHasta=${hasta}`);
+    datos=await r.json();
+    if(datos.error)throw new Error(datos.error);
+  }catch(e){datos=demoInformes();toast('Modo demo');}
+  document.getElementById('f-info').textContent=`${datos.nivelServicio.length} filas · ${datos.kilometros.length} despachos`;
+  renderServicio();renderKm();
+}
+
+function renderServicio(){
+  if(!datos)return;
+  const rows=datos.nivelServicio;
+  const atTiempo=rows.filter(r=>r.cumplimiento==='A TIEMPO').length;
+  const tardio=rows.filter(r=>r.cumplimiento==='TARDÍO').length;
+  const pct=rows.length?Math.round(atTiempo/rows.filter(r=>r.cumplimiento!=='—').length*100):0;
+  document.getElementById('sum-servicio').innerHTML=`
+    <div class="scard"><div class="sval">${rows.length}</div><div class="slbl">Total entregas</div></div>
+    <div class="scard"><div class="sval" style="color:var(--green)">${atTiempo}</div><div class="slbl">A tiempo</div></div>
+    <div class="scard"><div class="sval" style="color:var(--red)">${tardio}</div><div class="slbl">Tardías</div></div>
+    <div class="scard"><div class="sval" style="color:${pct>=90?'var(--green)':pct>=70?'var(--amber)':'var(--red)'}">${pct}%</div><div class="slbl">Cumplimiento</div></div>`;
+  if(!rows.length){document.getElementById('tbl-servicio').innerHTML='<div class="empty">Sin datos para el rango seleccionado</div>';return;}
+  document.getElementById('tbl-servicio').innerHTML=`<table>
+    <thead><tr><th>Fecha</th><th>Placa</th><th>Protocolo</th><th>Inicio cargue</th><th>Cód. tienda</th><th>Tienda</th><th>Hora cita</th><th>Llegada real</th><th>Inicio desc.</th><th>Fin desc.</th><th>Salida</th><th>Cumplimiento</th></tr></thead>
+    <tbody>${rows.map(r=>`<tr>
+      <td>${r.fecha}</td><td style="font-weight:600">${r.placa}</td><td style="color:var(--blue)">${r.protocolo}</td>
+      <td>${r.inicioCargue||'—'}</td><td>${r.codigoTienda}</td><td>${r.tienda}</td>
+      <td>${r.horaCita||'—'}</td><td>${r.horaLlegada||'—'}</td>
+      <td>${r.horaInicioDesc||'—'}</td><td>${r.horaFinDesc||'—'}</td><td>${r.horaSalida||'—'}</td>
+      <td><span class="badge ${r.cumplimiento==='A TIEMPO'?'b-ok':r.cumplimiento==='TARDÍO'?'b-tard':'b-na'}">${r.cumplimiento}</span></td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+function renderKm(){
+  if(!datos)return;
+  const rows=datos.kilometros;
+  const totalKm=rows.reduce((s,r)=>s+(parseFloat(r.kilometros)||0),0);
+  const totalPeajes=rows.reduce((s,r)=>s+(parseFloat(r.peajes.toString().replace(/[^0-9.]/g,''))||0),0);
+  document.getElementById('sum-km').innerHTML=`
+    <div class="scard"><div class="sval">${rows.length}</div><div class="slbl">Despachos</div></div>
+    <div class="scard"><div class="sval" style="color:var(--blue)">${Math.round(totalKm).toLocaleString('es-CO')}</div><div class="slbl">Km totales</div></div>
+    <div class="scard"><div class="sval" style="color:var(--amber)">$${Math.round(totalPeajes).toLocaleString('es-CO')}</div><div class="slbl">Peajes totales</div></div>
+    <div class="scard"><div class="sval" style="color:var(--gray-t)">${rows.length?Math.round(totalKm/rows.length):0}</div><div class="slbl">Km promedio</div></div>`;
+  if(!rows.length){document.getElementById('tbl-km').innerHTML='<div class="empty">Sin datos</div>';return;}
+  document.getElementById('tbl-km').innerHTML=`<table>
+    <thead><tr><th>Fecha</th><th>Protocolo</th><th>Placa Dispo</th><th>Placa Backup</th><th>Kilómetros</th><th>Peajes</th><th>Conductor</th></tr></thead>
+    <tbody>${rows.map(r=>`<tr>
+      <td>${r.fecha}</td><td style="color:var(--blue)">${r.protocolo}</td>
+      <td style="font-weight:600">${r.placaDispo}</td><td>${r.placaBackup}</td>
+      <td style="font-weight:600">${r.kilometros}</td><td>${r.peajes}</td><td>${r.conductor}</td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+function showTab(name,btn){
+  tabActivo=name;
+  document.getElementById('tab-servicio').style.display=name==='servicio'?'block':'none';
+  document.getElementById('tab-km').style.display=name==='km'?'block':'none';
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+
+function exportarCSV(tipo){
+  if(!datos){toast('Genera el informe primero');return;}
+  let headers,rows;
+  if(tipo==='servicio'){
+    headers=['Fecha','Placa','Protocolo','Inicio cargue','Cod tienda','Tienda','Hora cita','Hora llegada','Inicio descargue','Fin descargue','Hora salida','Cumplimiento'];
+    rows=datos.nivelServicio.map(r=>[r.fecha,r.placa,r.protocolo,r.inicioCargue,r.codigoTienda,r.tienda,r.horaCita,r.horaLlegada,r.horaInicioDesc,r.horaFinDesc,r.horaSalida,r.cumplimiento]);
+  }else{
+    headers=['Fecha','Protocolo','Placa Dispo','Placa Backup','Kilometros','Peajes','Conductor'];
+    rows=datos.kilometros.map(r=>[r.fecha,r.protocolo,r.placaDispo,r.placaBackup,r.kilometros,r.peajes,r.conductor]);
+  }
+  const csv=[headers,...rows].map(r=>r.map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`informe_${tipo}_${document.getElementById('f-desde').value}_${document.getElementById('f-hasta').value}.csv`;
+  a.click();toast('CSV exportado');
+}
+
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+function demoInformes(){
+  return{
+    nivelServicio:[
+      {fecha:'09/04/2026',placa:'ABC-123',protocolo:'P-2041',inicioCargue:'07:30',codigoTienda:'T1',tienda:'Supermercado La 14',horaCita:'09:00',horaLlegada:'09:05',horaInicioDesc:'09:10',horaFinDesc:'09:40',horaSalida:'09:45',cumplimiento:'A TIEMPO'},
+      {fecha:'09/04/2026',placa:'ABC-123',protocolo:'P-2041',inicioCargue:'07:30',codigoTienda:'T2',tienda:'Tienda Comunal Norte',horaCita:'10:30',horaLlegada:'10:45',horaInicioDesc:'10:50',horaFinDesc:'11:20',horaSalida:'11:25',cumplimiento:'TARDÍO'},
+      {fecha:'09/04/2026',placa:'DEF-789',protocolo:'P-2043',inicioCargue:'07:50',codigoTienda:'T1',tienda:'Supermercado Norte',horaCita:'09:00',horaLlegada:'09:08',horaInicioDesc:'09:12',horaFinDesc:'09:50',horaSalida:'09:55',cumplimiento:'A TIEMPO'},
+      {fecha:'09/04/2026',placa:'DEF-789',protocolo:'P-2043',inicioCargue:'07:50',codigoTienda:'T2',tienda:'Tienda El Progreso',horaCita:'10:30',horaLlegada:'10:28',horaInicioDesc:'10:35',horaFinDesc:'11:05',horaSalida:'11:10',cumplimiento:'A TIEMPO'}
+    ],
+    kilometros:[
+      {fecha:'09/04/2026',protocolo:'P-2041',placaDispo:'ABC-123',placaBackup:'—',kilometros:'142',peajes:'18000',conductor:'Pedro Ramírez'},
+      {fecha:'09/04/2026',protocolo:'P-2042',placaDispo:'XYZ-456',placaBackup:'—',kilometros:'98',peajes:'12000',conductor:'Luis Perdomo'},
+      {fecha:'09/04/2026',protocolo:'P-2043',placaDispo:'DEF-789',placaBackup:'—',kilometros:'115',peajes:'22000',conductor:'Carlos Muñoz'},
+      {fecha:'09/04/2026',protocolo:'P-2044',placaDispo:'GHI-321',placaBackup:'—',kilometros:'88',peajes:'15000',conductor:'Jorge Torres'}
+    ]
+  };
+}
+</script>
+</body>
+</html>
