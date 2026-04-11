@@ -2,87 +2,113 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#185FA5">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>FleteTrack — Estadísticas</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-  :root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;--green:#1D9E75;--green-l:#E1F5EE;--green-t:#085041;--amber:#BA7517;--amber-l:#FAEEDA;--amber-t:#633806;--red:#E24B4A;--red-l:#FCEBEB;--red-t:#791F1F;--gray:#5F5E5A;--gray-l:#F1EFE8;--gray-t:#2C2C2A;--border:#e0ddd6;--bg:#f8f7f4;--white:#fff;--radius:10px;--radius-sm:6px}
-  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
-  body{background:var(--bg);color:#1a1a18;min-height:100vh}
-  .topbar{background:var(--blue);color:white;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:20}
-  .topbar h1{font-size:16px;font-weight:600}
-  .topbar-right{display:flex;align-items:center;gap:8px}
-  .refresh-btn{background:rgba(255,255,255,.15);border:none;color:white;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer}
-  .refresh-btn:hover{background:rgba(255,255,255,.25)}
-  .last-upd{font-size:11px;opacity:.6}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .spinning{animation:spin .7s linear infinite}
+:root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;--green:#1D9E75;--green-l:#E1F5EE;--green-t:#085041;--amber:#BA7517;--amber-l:#FAEEDA;--amber-t:#633806;--red:#E24B4A;--red-l:#FCEBEB;--red-t:#791F1F;--gray:#5F5E5A;--gray-l:#F1EFE8;--gray-t:#2C2C2A;--border:#e0ddd6;--bg:#f8f7f4;--r:10px;--rs:6px}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{background:var(--bg);color:#1a1a18}
+.topbar{background:var(--blue);color:white;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:20}
+.topbar h1{font-size:16px;font-weight:600}
+.topbar-nav{display:flex;gap:4px}
+.nav-link{background:rgba(255,255,255,.15);border:none;color:white;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;text-decoration:none;display:inline-block}
+.nav-link:hover{background:rgba(255,255,255,.25)}
+.refresh-btn{background:rgba(255,255,255,.15);border:none;color:white;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px}
+.refresh-btn:hover{background:rgba(255,255,255,.25)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinning{animation:spin .7s linear infinite}
+.filtros{background:white;border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fg{display:flex;align-items:center;gap:6px}
+.fg label{font-size:11px;font-weight:600;color:var(--gray);white-space:nowrap}
+.fg input{font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:var(--rs);background:white;color:#1a1a18;outline:none}
+.fg input:focus{border-color:var(--blue)}
+.tabs{display:flex;border-bottom:1px solid var(--border);background:white;padding:0 20px;position:sticky;top:52px;z-index:10}
+.tab-btn{padding:10px 16px;font-size:12px;font-weight:500;color:var(--gray);cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap}
+.tab-btn.sel{color:var(--blue);border-bottom-color:var(--blue)}
+.content{padding:16px 20px;max-width:1100px;margin:0 auto}
+.tab-content{display:none}.tab-content.active{display:block}
+.card{background:white;border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.card-title{font-size:13px;font-weight:600;color:var(--gray-t);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
 
-  .filtros{background:white;border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-  .fg{display:flex;align-items:center;gap:6px}
-  .fg label{font-size:11px;font-weight:600;color:var(--gray);white-space:nowrap}
-  .fg input,.fg select{font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:white;color:#1a1a18;outline:none}
-  .fg input:focus,.fg select:focus{border-color:var(--blue)}
-  .fsep{width:1px;height:24px;background:var(--border)}
-  .freset{font-size:11px;color:var(--blue);background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:4px}
-  .freset:hover{background:var(--blue-l)}
+/* CUADRO OBJETIVOS */
+.obj-table{width:100%;border-collapse:collapse}
+.obj-table th{font-size:11px;font-weight:600;color:white;padding:8px 14px;text-align:center}
+.obj-table th:first-child{text-align:left;background:var(--blue-t)}
+.obj-table th.col-obj{background:var(--blue)}
+.obj-table th.col-eje{background:var(--green-t)}
+.obj-table td{padding:9px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+.obj-table td:first-child{font-weight:500;color:var(--gray-t)}
+.obj-table td.v-obj{text-align:center;font-weight:600;color:var(--blue-t)}
+.obj-table td.v-eje{text-align:center;font-weight:700;font-size:14px}
+.obj-table td.v-dif{text-align:center;font-size:11px;font-weight:500}
+.obj-table tr:last-child td{border-bottom:none}
+.obj-table tr:hover td{background:var(--bg)}
+.obj-input{width:70px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px;text-align:center;background:var(--blue-l);color:var(--blue-t);font-weight:600}
+.obj-input:focus{outline:none;border-color:var(--blue)}
+.badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500}
+.b-ok{background:var(--green-l);color:var(--green-t)}
+.b-warn{background:var(--amber-l);color:var(--amber-t)}
+.b-bad{background:var(--red-l);color:var(--red-t)}
+.b-na{background:var(--gray-l);color:var(--gray)}
 
-  .content{padding:16px 20px;max-width:1100px;margin:0 auto}
-  .metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:20px}
-  .metric{background:white;border:1px solid var(--border);border-radius:var(--radius);padding:14px}
-  .metric-val{font-size:26px;font-weight:600}
-  .metric-lbl{font-size:11px;color:var(--gray);margin-top:3px}
-  .metric-sub{font-size:11px;margin-top:4px;font-weight:500}
-  .m-blue .metric-val{color:var(--blue)}
-  .m-green .metric-val{color:var(--green)}
-  .m-amber .metric-val{color:var(--amber)}
-  .m-gray .metric-val{color:var(--gray-t)}
+/* NOVEDADES CARGUE */
+.nov-table{width:100%;border-collapse:collapse}
+.nov-table th{font-size:10px;font-weight:600;color:var(--gray);padding:6px 10px;border-bottom:2px solid var(--border);text-transform:uppercase;letter-spacing:.04em;text-align:left;white-space:nowrap;background:white}
+.nov-table td{font-size:12px;padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.nov-table tr:last-child td{border-bottom:none}
+.nov-table tr:hover td{background:var(--bg)}
+.nov-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:3px}
+.nov-fill{height:100%;border-radius:3px}
+.ranking-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.ranking-item:last-child{border-bottom:none}
+.rank-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;flex-shrink:0}
 
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
-  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
-  .card{background:white;border:1px solid var(--border);border-radius:var(--radius);padding:16px}
-  .card-title{font-size:13px;font-weight:600;color:var(--gray-t);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
-  .card-sub{font-size:11px;color:var(--gray);font-weight:400}
+/* CONDUCTORES / VEHICULOS */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{font-size:10px;font-weight:600;color:var(--gray);padding:6px 10px;border-bottom:2px solid var(--border);text-transform:uppercase;letter-spacing:.04em;text-align:left}
+.data-table td{font-size:12px;padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:var(--bg)}
+.pct-wrap{display:flex;align-items:center;gap:6px}
+.pct-bar{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.pct-fill{height:100%;border-radius:3px}
 
-  .table{width:100%;border-collapse:collapse}
-  .table th{font-size:10px;font-weight:600;color:var(--gray);text-align:left;padding:6px 10px;border-bottom:2px solid var(--border);text-transform:uppercase;letter-spacing:.04em}
-  .table td{font-size:12px;padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
-  .table tr:last-child td{border-bottom:none}
-  .table tr:hover td{background:var(--bg)}
-  .pct-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:4px}
-  .pct-fill{height:100%;border-radius:3px;background:var(--green)}
-
-  .badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500}
-  .b-ok{background:var(--green-l);color:var(--green-t)}
-  .b-warn{background:var(--amber-l);color:var(--amber-t)}
-  .b-blue{background:var(--blue-l);color:var(--blue-t)}
-
-  .loading{text-align:center;padding:40px;color:var(--gray);font-size:13px}
-  .spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
-  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a18;color:white;padding:9px 16px;border-radius:20px;font-size:12px;z-index:100;opacity:0;transition:opacity .3s;pointer-events:none}
-  .toast.show{opacity:1}
-  .empty{text-align:center;padding:24px;color:var(--gray);font-size:12px}
-
-  .nav-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px;background:white;padding:0 20px;position:sticky;top:52px;z-index:10}
-  .nav-tab{padding:10px 16px;font-size:12px;font-weight:500;color:var(--gray);cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap}
-  .nav-tab.sel{color:var(--blue);border-bottom-color:var(--blue)}
-
-  @media(max-width:700px){.metrics{grid-template-columns:1fr 1fr}.grid2,.grid3{grid-template-columns:1fr}}
+.loading{text-align:center;padding:40px;color:var(--gray);font-size:13px}
+.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
+.empty{text-align:center;padding:24px;color:var(--gray);font-size:12px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a18;color:white;padding:9px 16px;border-radius:20px;font-size:12px;z-index:100;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+.last-upd{font-size:11px;color:rgba(255,255,255,.6)}
+@media(max-width:700px){.grid2,.grid3{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-
 <script>
-// ⚠️ CAMBIA ESTA URL por la de tu Apps Script
-const API_URL = 'https://script.google.com/macros/s/AKfycbz1QCkoP5kUnJZ6UiSoOZWl3bc8DmeXa26PXhzv0Ypf7JLR5SFbweok45503ncdZPD_/exec';
+const API_URL    = 'https://script.google.com/macros/s/AKfycbyHby21OhqFpu81NAMOIC10gP0vdN5cS34dWfY21-FyvO6wh9Lm7GKQ-e5V1BhnvTQH/exec';
+const DASH_URL   = 'https://davidmilques.github.io/fletetrack/dashboard_v2.html';
+const INF_URL    = 'https://davidmilques.github.io/fletetrack/informes.html';
+
+// Objetivos editables — se guardan en localStorage
+const OBJ_KEY = 'fletetrack_objetivos';
+let objetivos = JSON.parse(localStorage.getItem(OBJ_KEY) || 'null') || {
+  vehiculos:24, viajes:55, frecuencia:2.3, km:5906, kmVeh:271, pallet:778, tiempoCedi:120
+};
+
 let stats = null;
 let charts = {};
+let tabActivo = 'resumen';
 </script>
 
 <div class="topbar">
   <h1>FleteTrack — Estadísticas</h1>
-  <div class="topbar-right">
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="topbar-nav">
+      <a class="nav-link" id="link-dash">Dashboard</a>
+      <a class="nav-link" id="link-inf">Informes</a>
+    </div>
     <span class="last-upd" id="last-upd"></span>
     <button class="refresh-btn" onclick="cargar()">
       <svg id="ref-icon" width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M13.5 8A5.5 5.5 0 112.5 5M2.5 2v3h3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -92,346 +118,419 @@ let charts = {};
 </div>
 
 <div class="filtros">
-  <div class="fg"><label>Desde</label><input type="date" id="f-desde" onchange="cargar()"></div>
-  <div class="fsep"></div>
-  <div class="fg"><label>Hasta</label><input type="date" id="f-hasta" onchange="cargar()"></div>
-  <button class="freset" onclick="limpiarFiltros()">Limpiar</button>
-  <span style="font-size:11px;color:var(--gray);margin-left:auto" id="filtro-rng"></span>
+  <div class="fg"><label>Fecha</label><input type="date" id="f-fecha" onchange="cargar()"></div>
+  <div class="fg" style="margin-left:8px"><label style="color:var(--gray);font-size:11px">— o rango —</label></div>
+  <div class="fg"><label>Desde</label><input type="date" id="f-desde"></div>
+  <div class="fg"><label>Hasta</label><input type="date" id="f-hasta"></div>
+  <button style="padding:5px 12px;background:var(--blue);color:white;border:none;border-radius:var(--rs);font-size:12px;cursor:pointer;font-weight:500" onclick="cargar()">Consultar</button>
+  <span style="font-size:11px;color:var(--gray);margin-left:auto" id="f-info"></span>
 </div>
 
-<div class="nav-tabs">
-  <button class="nav-tab sel" onclick="showTab('resumen',this)">Resumen</button>
-  <button class="nav-tab" onclick="showTab('conductores',this)">Conductores</button>
-  <button class="nav-tab" onclick="showTab('vehiculos',this)">Vehículos</button>
-  <button class="nav-tab" onclick="showTab('novedades',this)">Novedades de cargue</button>
+<div class="tabs">
+  <button class="tab-btn sel" onclick="showTab('resumen',this)">Resumen del día</button>
+  <button class="tab-btn" onclick="showTab('novedades',this)">Novedades de cargue</button>
+  <button class="tab-btn" onclick="showTab('conductores',this)">Conductores</button>
+  <button class="tab-btn" onclick="showTab('vehiculos',this)">Vehículos</button>
 </div>
 
 <div class="content">
-  <div id="loading-main" class="loading"><div class="spinner"></div>Cargando estadísticas...</div>
 
   <!-- RESUMEN -->
-  <div id="tab-resumen" class="tab-content" style="display:none">
-    <div class="metrics" id="metrics-row"></div>
-    <div class="grid2">
+  <div id="tab-resumen" class="tab-content active">
+    <div id="loading-resumen" class="loading"><div class="spinner"></div>Cargando estadísticas...</div>
+
+    <div id="resumen-content" style="display:none">
+      <!-- CUADRO OBJETIVOS VS EJECUTADO -->
       <div class="card">
-        <div class="card-title">Estado de despachos <span class="card-sub" id="total-lbl"></span></div>
-        <canvas id="chart-estado" height="200"></canvas>
+        <div class="card-title">
+          Objetivos vs ejecutado
+          <span style="font-size:11px;font-weight:400;color:var(--gray)">Los objetivos son editables — clic en el valor azul</span>
+        </div>
+        <table class="obj-table">
+          <thead>
+            <tr>
+              <th style="text-align:left;background:var(--gray-t);min-width:180px">Indicador</th>
+              <th class="col-obj">Objetivo</th>
+              <th class="col-eje">Ejecutado</th>
+              <th style="background:var(--gray);min-width:80px">Resultado</th>
+            </tr>
+          </thead>
+          <tbody id="obj-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- GRÁFICAS -->
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">Estado de despachos</div>
+          <canvas id="chart-estado" height="200"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-title">Despachos por turno</div>
+          <canvas id="chart-turno" height="200"></canvas>
+        </div>
       </div>
       <div class="card">
-        <div class="card-title">Despachos por turno</div>
-        <canvas id="chart-turno" height="200"></canvas>
+        <div class="card-title">Cumplimiento de entregas por conductor</div>
+        <canvas id="chart-cumplimiento" height="110"></canvas>
       </div>
     </div>
-    <div class="card" style="margin-bottom:14px">
-      <div class="card-title">Cumplimiento de entregas por conductor</div>
-      <canvas id="chart-cumplimiento" height="120"></canvas>
+  </div>
+
+  <!-- NOVEDADES DE CARGUE -->
+  <div id="tab-novedades" class="tab-content">
+    <div id="loading-novedades" class="loading"><div class="spinner"></div>Cargando...</div>
+    <div id="novedades-content" style="display:none">
+      <div class="grid2">
+        <div class="card">
+          <div class="card-title">Ranking de novedades</div>
+          <div id="ranking-nov"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Distribución</div>
+          <canvas id="chart-novedades" height="240"></canvas>
+        </div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:12px 16px;font-size:13px;font-weight:600;color:var(--gray-t)">Detalle por despacho</div>
+        <div style="overflow-x:auto">
+          <table class="nov-table" id="tabla-nov-detalle">
+            <thead><tr>
+              <th>Fecha</th><th>Protocolo</th><th>Placa</th><th>Conductor</th>
+              <th>Pallet reserva</th><th>Estibas n/loc.</th><th>Sin vinipel</th>
+              <th>Mal conformadas</th><th>Por remontes</th><th>Contenedores</th>
+            </tr></thead>
+            <tbody id="nov-tbody"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- CONDUCTORES -->
-  <div id="tab-conductores" class="tab-content" style="display:none">
-    <div class="card">
-      <div class="card-title">Detalle por conductor</div>
-      <table class="table" id="tabla-conductores">
-        <thead><tr><th>Conductor</th><th>Despachos</th><th>Completados</th><th>Novedades</th><th>Tiendas</th><th>Cumplimiento</th></tr></thead>
-        <tbody></tbody>
-      </table>
+  <div id="tab-conductores" class="tab-content">
+    <div id="loading-cond" class="loading"><div class="spinner"></div>Cargando...</div>
+    <div id="cond-content" style="display:none">
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:12px 16px;font-size:13px;font-weight:600;color:var(--gray-t)">Detalle por conductor</div>
+        <table class="data-table" id="tabla-cond">
+          <thead><tr><th>Conductor</th><th>Despachos</th><th>Completados</th><th>Novedades</th><th>Tiendas</th><th>Km</th><th>Cumplimiento</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
   <!-- VEHÍCULOS -->
-  <div id="tab-vehiculos" class="tab-content" style="display:none">
-    <div class="grid2">
-      <div class="card">
-        <div class="card-title">Despachos por vehículo</div>
-        <canvas id="chart-placas" height="220"></canvas>
+  <div id="tab-vehiculos" class="tab-content">
+    <div id="loading-veh" class="loading"><div class="spinner"></div>Cargando...</div>
+    <div id="veh-content" style="display:none">
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:12px 16px;font-size:13px;font-weight:600;color:var(--gray-t)">Detalle por vehículo (Placa Dispo)</div>
+        <div style="overflow-x:auto">
+          <table class="data-table" id="tabla-veh">
+            <thead><tr><th>Placa Dispo</th><th>Placa Backup</th><th>Viajes</th><th>Km</th><th>Peajes</th><th>Pallet</th><th>Tiendas</th><th>Frecuencia</th><th>Novedades</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
-      <div class="card">
-        <div class="card-title">Kilómetros acumulados por vehículo</div>
-        <canvas id="chart-km" height="220"></canvas>
+      <div class="grid2" style="margin-top:12px">
+        <div class="card">
+          <div class="card-title">Kilómetros por vehículo</div>
+          <canvas id="chart-km-veh" height="200"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-title">Viajes por vehículo</div>
+          <canvas id="chart-viajes-veh" height="200"></canvas>
+        </div>
       </div>
-    </div>
-    <div class="card">
-      <div class="card-title">Detalle por vehículo</div>
-      <table class="table" id="tabla-placas">
-        <thead><tr><th>Placa</th><th>Despachos</th><th>Kilómetros</th><th>Novedades</th></tr></thead>
-        <tbody></tbody>
-      </table>
     </div>
   </div>
 
-  <!-- NOVEDADES CARGUE -->
-  <div id="tab-novedades" class="tab-content" style="display:none">
-    <div class="grid2">
-      <div class="card">
-        <div class="card-title">Novedades de cargue acumuladas</div>
-        <canvas id="chart-novedades" height="240"></canvas>
-      </div>
-      <div class="card">
-        <div class="card-title">Ranking de novedades</div>
-        <div id="ranking-novedades"></div>
-      </div>
-    </div>
-  </div>
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script>
-const COLORES = ['#185FA5','#1D9E75','#BA7517','#E24B4A','#534AB7','#D85A30','#639922','#D4537E','#888780'];
+const COLORES = ['#185FA5','#1D9E75','#BA7517','#E24B4A','#534AB7','#D85A30','#639922','#D4537E'];
+
+document.getElementById('link-dash').href = DASH_URL;
+document.getElementById('link-inf').href  = INF_URL;
 
 window.addEventListener('DOMContentLoaded', () => {
-  const hoy  = new Date();
-  const mes1 = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-  document.getElementById('f-desde').value = fmtDateInput(mes1);
-  document.getElementById('f-hasta').value = fmtDateInput(hoy);
+  const hoy = new Date();
+  document.getElementById('f-fecha').value = fmtInput(hoy);
   cargar();
 });
 
-function fmtDateInput(d) {
+function fmtInput(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
-
-function inputToApi(val) {
-  if (!val) return '';
-  const [y,m,d] = val.split('-');
+function fmtApi(v) {
+  if (!v) return '';
+  const [y,m,d] = v.split('-');
   return `${d}/${m}/${y}`;
 }
 
 async function cargar() {
   const icon = document.getElementById('ref-icon');
   icon.classList.add('spinning');
-  document.getElementById('loading-main').style.display = 'block';
-  document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+  showLoadings();
 
-  const desde = inputToApi(document.getElementById('f-desde').value);
-  const hasta = inputToApi(document.getElementById('f-hasta').value);
+  const fecha  = fmtApi(document.getElementById('f-fecha').value);
+  const desde  = fmtApi(document.getElementById('f-desde').value);
+  const hasta  = fmtApi(document.getElementById('f-hasta').value);
+  const params = fecha ? `fecha=${fecha}` : `fechaDesde=${desde}&fechaHasta=${hasta}`;
+
+  document.getElementById('f-info').textContent = fecha ? `Fecha: ${fecha}` : desde&&hasta ? `${desde} → ${hasta}` : '';
 
   try {
-    const url = `${API_URL}?action=getEstadisticas&fechaDesde=${desde}&fechaHasta=${hasta}`;
-    const res = await fetch(url);
-    stats = await res.json();
+    const r = await fetch(`${API_URL}?action=getEstadisticas&${params}`);
+    stats = await r.json();
     if (stats.error) throw new Error(stats.error);
   } catch(e) {
     stats = getDemoStats();
     toast('Modo demo — configura API_URL');
   }
 
-  document.getElementById('loading-main').style.display = 'none';
-  document.getElementById('last-upd').textContent = `${new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}`;
-
-  const rng = document.getElementById('filtro-rng');
-  rng.textContent = desde && hasta ? `${desde} → ${hasta}` : '';
-
   renderResumen();
+  renderNovedades();
   renderConductores();
   renderVehiculos();
-  renderNovedadesCargue();
-  showTabActivo();
+  document.getElementById('last-upd').textContent = new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
   icon.classList.remove('spinning');
 }
 
-function limpiarFiltros() {
-  document.getElementById('f-desde').value = '';
-  document.getElementById('f-hasta').value = '';
-  cargar();
-}
-
-let tabActivo = 'resumen';
-function showTab(name, btn) {
-  tabActivo = name;
-  showTabActivo();
-  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('sel'));
-  if (btn) btn.classList.add('sel');
-}
-function showTabActivo() {
-  document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-  const el = document.getElementById('tab-' + tabActivo);
-  if (el) el.style.display = 'block';
+function showLoadings() {
+  ['resumen','novedades','cond','veh'].forEach(id => {
+    const l = document.getElementById(`loading-${id}`);
+    const c = document.getElementById(`${id}-content`);
+    if (l) l.style.display = 'block';
+    if (c) c.style.display = 'none';
+  });
 }
 
 // ---- RESUMEN ----
 function renderResumen() {
-  if (!stats) return;
   const r = stats.resumen;
 
-  document.getElementById('metrics-row').innerHTML = `
-    <div class="metric m-gray"><div class="metric-val">${r.total}</div><div class="metric-lbl">Total despachos</div></div>
-    <div class="metric m-blue"><div class="metric-val">${r.enRuta}</div><div class="metric-lbl">En ruta ahora</div></div>
-    <div class="metric m-green"><div class="metric-val">${r.pctCumplimiento}%</div><div class="metric-lbl">Cumplimiento entregas</div><div class="metric-sub" style="color:var(--green)">${r.tiendasOk} de ${r.totalTiendas} tiendas</div></div>
-    <div class="metric m-amber"><div class="metric-val">${r.promTiempoCedi}'</div><div class="metric-lbl">Tiempo prom. CEDI</div><div class="metric-sub" style="color:var(--gray)">minutos</div></div>`;
+  // Cuadro objetivos vs ejecutado
+  const indicadores = [
+    { key:'vehiculos',  label:'Vehículos operativos', obj: objetivos.vehiculos,  eje: r.vehiculosOperativos, fmt: v => v,              mejor:'mayor' },
+    { key:'viajes',     label:'Viajes',                obj: objetivos.viajes,     eje: r.total,               fmt: v => v,              mejor:'mayor' },
+    { key:'frecuencia', label:'Frecuencia (viajes/veh)',obj: objetivos.frecuencia,eje: r.frecuencia,           fmt: v => v.toFixed(2),   mejor:'mayor' },
+    { key:'km',         label:'Km ejecutados',          obj: objetivos.km,         eje: r.totalKm,             fmt: v => v.toLocaleString('es-CO'), mejor:'mayor' },
+    { key:'kmVeh',      label:'Km / veh-día',           obj: objetivos.kmVeh,      eje: r.kmVehDia,            fmt: v => v,              mejor:'mayor' },
+    { key:'pallet',     label:'Pallet',                 obj: objetivos.pallet,     eje: r.totalPallet,         fmt: v => v.toLocaleString('es-CO'), mejor:'mayor' },
+    { key:'tiempoCedi', label:'Tiempo prom. CEDI (min)',obj: objetivos.tiempoCedi, eje: r.promTiempoCedi,       fmt: v => v,              mejor:'menor' },
+  ];
 
-  document.getElementById('total-lbl').textContent = `${r.total} total`;
+  document.getElementById('obj-tbody').innerHTML = indicadores.map(ind => {
+    const pct = ind.obj > 0 ? Math.round(ind.eje / ind.obj * 100) : 0;
+    const ok  = ind.mejor === 'mayor' ? ind.eje >= ind.obj : ind.eje <= ind.obj;
+    const warn = ind.mejor === 'mayor' ? pct >= 80 : pct <= 120;
+    const bCls = ok ? 'b-ok' : warn ? 'b-warn' : 'b-bad';
+    const bTxt = ok ? `${pct}% ✓` : `${pct}%`;
+    return `<tr>
+      <td>${ind.label}</td>
+      <td class="v-obj"><input class="obj-input" type="number" value="${ind.obj}" onchange="guardarObj('${ind.key}',this.value)" title="Clic para editar objetivo"></td>
+      <td class="v-eje" style="color:${ok?'var(--green-t)':'var(--red-t)'}">${ind.fmt(ind.eje)}</td>
+      <td class="v-dif"><span class="badge ${bCls}">${bTxt}</span></td>
+    </tr>`;
+  }).join('');
 
-  // Donut estado
+  // Gráfica estado
   destroyChart('chart-estado');
+  const estados = [
+    { label:'En ruta',    val: r.enRuta,      color:'#BA7517' },
+    { label:'Completado', val: r.completados,  color:'#1D9E75' },
+    { label:'Novedad',    val: r.novedades,    color:'#E24B4A' },
+    { label:'Otros',      val: Math.max(0, r.total - r.enRuta - r.completados - r.novedades), color:'#B4B2A9' }
+  ].filter(e => e.val > 0);
   charts['chart-estado'] = new Chart(document.getElementById('chart-estado'), {
-    type: 'doughnut',
-    data: {
-      labels: ['Completados','Novedades','En ruta','Otros'],
-      datasets: [{ data: [r.completados, r.novedades, r.enRuta, r.total-r.completados-r.novedades-r.enRuta],
-        backgroundColor: ['#1D9E75','#BA7517','#185FA5','#B4B2A9'], borderWidth: 2, borderColor: '#fff' }]
-    },
-    options: { plugins: { legend: { position:'bottom', labels:{ font:{size:11}, boxWidth:12 } } }, cutout:'60%', maintainAspectRatio:false }
+    type:'doughnut',
+    data:{labels:estados.map(e=>e.label),datasets:[{data:estados.map(e=>e.val),backgroundColor:estados.map(e=>e.color),borderWidth:2,borderColor:'#fff'}]},
+    options:{plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},cutout:'60%',maintainAspectRatio:false}
   });
 
-  // Barras turno
+  // Gráfica turnos
   destroyChart('chart-turno');
   const turnos = stats.porTurno || [];
   charts['chart-turno'] = new Chart(document.getElementById('chart-turno'), {
-    type: 'bar',
-    data: {
-      labels: turnos.map(t=>t.turno),
-      datasets: [{ data: turnos.map(t=>t.total), backgroundColor: COLORES, borderRadius: 6, borderSkipped: false }]
-    },
-    options: { plugins:{ legend:{display:false} }, scales:{ y:{beginAtZero:true, ticks:{stepSize:1} }, x:{ grid:{display:false} } }, maintainAspectRatio:false }
+    type:'bar',
+    data:{labels:turnos.map(t=>t.turno),datasets:[{data:turnos.map(t=>t.total),backgroundColor:COLORES,borderRadius:6,borderSkipped:false}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}},x:{grid:{display:false}}},maintainAspectRatio:false}
   });
 
-  // Barras cumplimiento por conductor
+  // Cumplimiento por conductor
   destroyChart('chart-cumplimiento');
   const conds = stats.porConductor || [];
   const pcts  = conds.map(c => c.tiendas > 0 ? Math.round(c.tiendasOk/c.tiendas*100) : 0);
   charts['chart-cumplimiento'] = new Chart(document.getElementById('chart-cumplimiento'), {
-    type: 'bar',
-    data: {
-      labels: conds.map(c => c.nombre),
-      datasets: [{ label:'Cumplimiento %', data: pcts, backgroundColor: pcts.map(p => p>=90?'#1D9E75':p>=70?'#BA7517':'#E24B4A'), borderRadius:6, borderSkipped:false }]
-    },
-    options: { indexAxis:'y', plugins:{ legend:{display:false} }, scales:{ x:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'}}, y:{grid:{display:false}} }, maintainAspectRatio:false }
+    type:'bar',
+    data:{labels:conds.map(c=>c.nombre),datasets:[{label:'Cumplimiento %',data:pcts,backgroundColor:pcts.map(p=>p>=90?'#1D9E75':p>=70?'#BA7517':'#E24B4A'),borderRadius:6,borderSkipped:false}]},
+    options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'}},y:{grid:{display:false}}},maintainAspectRatio:false}
   });
+
+  document.getElementById('loading-resumen').style.display = 'none';
+  document.getElementById('resumen-content').style.display = 'block';
+}
+
+function guardarObj(key, val) {
+  objetivos[key] = parseFloat(val) || 0;
+  localStorage.setItem(OBJ_KEY, JSON.stringify(objetivos));
+  renderResumen();
+}
+
+// ---- NOVEDADES DE CARGUE ----
+function renderNovedades() {
+  const novs = stats.novedadesCargue || [];
+  const detalle = stats.novedadesDetalle || [];
+
+  // Ranking
+  const max = novs.length ? novs[0].total : 1;
+  document.getElementById('ranking-nov').innerHTML = novs.length
+    ? novs.map((n,i) => `
+        <div class="ranking-item">
+          <div class="rank-num" style="background:${COLORES[i%COLORES.length]}">${i+1}</div>
+          <div style="flex:1">
+            <div style="font-size:12px;font-weight:500">${n.nombre}</div>
+            <div class="nov-bar" style="margin-top:3px"><div class="nov-fill" style="width:${Math.round(n.total/max*100)}%;background:${COLORES[i%COLORES.length]}"></div></div>
+          </div>
+          <div style="font-size:16px;font-weight:700;color:${COLORES[i%COLORES.length]};min-width:28px;text-align:right">${n.total}</div>
+        </div>`).join('')
+    : '<div class="empty">Sin novedades de cargue registradas</div>';
+
+  // Gráfica
+  destroyChart('chart-novedades');
+  if (novs.length) {
+    charts['chart-novedades'] = new Chart(document.getElementById('chart-novedades'), {
+      type:'bar',
+      data:{labels:novs.map(n=>n.nombre),datasets:[{data:novs.map(n=>n.total),backgroundColor:novs.map((_,i)=>COLORES[i%COLORES.length]),borderRadius:6,borderSkipped:false}]},
+      options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true},y:{grid:{display:false}}},maintainAspectRatio:false}
+    });
+  }
+
+  // Tabla detalle por despacho
+  const tbody = document.getElementById('nov-tbody');
+  if (!detalle.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="empty">Sin detalle disponible</td></tr>';
+  } else {
+    tbody.innerHTML = detalle.map(row => `<tr>
+      <td>${row.fecha||'—'}</td>
+      <td style="color:var(--blue);font-weight:500">${row.protocolo||'—'}</td>
+      <td style="font-weight:600">${row.placa||'—'}</td>
+      <td>${row.conductor||'—'}</td>
+      <td style="text-align:center">${row['PALLET EN RESERVA']||0}</td>
+      <td style="text-align:center">${row['ESTIBAS NO LOCALIZADAS']||0}</td>
+      <td style="text-align:center">${row['PALLET SIN VINIPEL']||0}</td>
+      <td style="text-align:center">${row['PALLET MAL CONFORMADAS']||0}</td>
+      <td style="text-align:center">${row['PALLET POR REMONTES']||0}</td>
+      <td style="text-align:center">${row['CONTENEDORES']||0}</td>
+    </tr>`).join('');
+  }
+
+  document.getElementById('loading-novedades').style.display = 'none';
+  document.getElementById('novedades-content').style.display = 'block';
 }
 
 // ---- CONDUCTORES ----
 function renderConductores() {
-  if (!stats) return;
-  const tbody = document.querySelector('#tabla-conductores tbody');
   const conds = stats.porConductor || [];
-  if (!conds.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Sin datos</td></tr>'; return; }
-  tbody.innerHTML = conds.sort((a,b) => b.total-a.total).map(c => {
+  const tbody = document.querySelector('#tabla-cond tbody');
+  if (!conds.length) { tbody.innerHTML='<tr><td colspan="7" class="empty">Sin datos</td></tr>'; }
+  else tbody.innerHTML = conds.sort((a,b)=>b.total-a.total).map(c => {
     const pct = c.tiendas > 0 ? Math.round(c.tiendasOk/c.tiendas*100) : 0;
     const color = pct>=90?'var(--green)':pct>=70?'var(--amber)':'var(--red)';
     return `<tr>
       <td style="font-weight:500">${c.nombre}</td>
       <td>${c.total}</td>
       <td><span class="badge b-ok">${c.completados}</span></td>
-      <td>${c.novedades > 0 ? `<span class="badge b-warn">${c.novedades}</span>` : '—'}</td>
-      <td>${c.tiendasOk} / ${c.tiendas}</td>
-      <td>
-        <div style="display:flex;align-items:center;gap:6px">
-          <div class="pct-bar" style="flex:1"><div class="pct-fill" style="width:${pct}%;background:${color}"></div></div>
-          <span style="font-size:11px;font-weight:600;color:${color};min-width:32px">${pct}%</span>
-        </div>
-      </td>
+      <td>${c.novedades>0?`<span class="badge b-warn">${c.novedades}</span>`:'—'}</td>
+      <td>${c.tiendasOk}/${c.tiendas}</td>
+      <td>${Math.round(c.km).toLocaleString('es-CO')} km</td>
+      <td><div class="pct-wrap"><div class="pct-bar"><div class="pct-fill" style="width:${pct}%;background:${color}"></div></div><span style="font-size:11px;font-weight:600;color:${color};min-width:34px">${pct}%</span></div></td>
     </tr>`;
   }).join('');
+  document.getElementById('loading-cond').style.display = 'none';
+  document.getElementById('cond-content').style.display = 'block';
 }
 
 // ---- VEHÍCULOS ----
 function renderVehiculos() {
-  if (!stats) return;
-  const placas = stats.porPlaca || [];
+  const vehs = stats.porVehiculo || [];
+  const tbody = document.querySelector('#tabla-veh tbody');
+  if (!vehs.length) { tbody.innerHTML='<tr><td colspan="9" class="empty">Sin datos</td></tr>'; }
+  else tbody.innerHTML = vehs.sort((a,b)=>b.viajes-a.viajes).map(v => {
+    const frec = Math.round(v.viajes * 100) / 100;
+    return `<tr>
+      <td style="font-weight:700">${v.placa}</td>
+      <td style="color:var(--gray)">${v.placaBackup}</td>
+      <td>${v.viajes}</td>
+      <td style="font-weight:500">${Math.round(v.km).toLocaleString('es-CO')}</td>
+      <td>$${Math.round(v.peajes).toLocaleString('es-CO')}</td>
+      <td>${Math.round(v.pallet).toLocaleString('es-CO')}</td>
+      <td>${v.tiendas}</td>
+      <td>${frec}</td>
+      <td>${v.novedades>0?`<span class="badge b-warn">${v.novedades}</span>`:'—'}</td>
+    </tr>`;
+  }).join('');
 
-  destroyChart('chart-placas');
-  charts['chart-placas'] = new Chart(document.getElementById('chart-placas'), {
-    type: 'bar',
-    data: {
-      labels: placas.map(p=>p.placa),
-      datasets:[{ label:'Despachos', data:placas.map(p=>p.total), backgroundColor:COLORES, borderRadius:6, borderSkipped:false }]
-    },
-    options:{ plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true,ticks:{stepSize:1}}, x:{grid:{display:false}} }, maintainAspectRatio:false }
+  destroyChart('chart-km-veh');
+  charts['chart-km-veh'] = new Chart(document.getElementById('chart-km-veh'), {
+    type:'bar',
+    data:{labels:vehs.map(v=>v.placa),datasets:[{label:'Km',data:vehs.map(v=>Math.round(v.km)),backgroundColor:COLORES,borderRadius:6,borderSkipped:false}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true},x:{grid:{display:false}}},maintainAspectRatio:false}
+  });
+  destroyChart('chart-viajes-veh');
+  charts['chart-viajes-veh'] = new Chart(document.getElementById('chart-viajes-veh'), {
+    type:'bar',
+    data:{labels:vehs.map(v=>v.placa),datasets:[{label:'Viajes',data:vehs.map(v=>v.viajes),backgroundColor:vehs.map((_,i)=>COLORES[i%COLORES.length]),borderRadius:6,borderSkipped:false}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}},x:{grid:{display:false}}},maintainAspectRatio:false}
   });
 
-  destroyChart('chart-km');
-  charts['chart-km'] = new Chart(document.getElementById('chart-km'), {
-    type: 'bar',
-    data: {
-      labels: placas.map(p=>p.placa),
-      datasets:[{ label:'Kilómetros', data:placas.map(p=>Math.round(p.km)), backgroundColor:placas.map((_,i)=>COLORES[i%COLORES.length]), borderRadius:6, borderSkipped:false }]
-    },
-    options:{ plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true}, x:{grid:{display:false}} }, maintainAspectRatio:false }
-  });
-
-  const tbody = document.querySelector('#tabla-placas tbody');
-  if (!placas.length) { tbody.innerHTML = '<tr><td colspan="4" class="empty">Sin datos</td></tr>'; return; }
-  tbody.innerHTML = placas.sort((a,b)=>b.total-a.total).map(p => `<tr>
-    <td style="font-weight:600">${p.placa}</td>
-    <td>${p.total}</td>
-    <td>${Math.round(p.km).toLocaleString('es-CO')} km</td>
-    <td>${p.novedades>0?`<span class="badge b-warn">${p.novedades}</span>`:'—'}</td>
-  </tr>`).join('');
+  document.getElementById('loading-veh').style.display = 'none';
+  document.getElementById('veh-content').style.display = 'block';
 }
 
-// ---- NOVEDADES DE CARGUE ----
-function renderNovedadesCargue() {
-  if (!stats) return;
-  const novs = stats.novedadesCargue || [];
-
-  destroyChart('chart-novedades');
-  if (novs.length) {
-    charts['chart-novedades'] = new Chart(document.getElementById('chart-novedades'), {
-      type: 'bar',
-      data: {
-        labels: novs.map(n=>n.nombre),
-        datasets:[{ label:'Total', data:novs.map(n=>n.total), backgroundColor:novs.map((_,i)=>COLORES[i%COLORES.length]), borderRadius:6, borderSkipped:false }]
-      },
-      options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{ x:{beginAtZero:true}, y:{grid:{display:false}} }, maintainAspectRatio:false }
-    });
-  } else {
-    document.getElementById('chart-novedades').parentElement.innerHTML += '<div class="empty">Sin novedades de cargue registradas</div>';
-  }
-
-  const max = novs.length ? novs[0].total : 1;
-  document.getElementById('ranking-novedades').innerHTML = novs.length
-    ? novs.map((n,i) => `
-      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
-        <div style="width:22px;height:22px;border-radius:50%;background:${COLORES[i%COLORES.length]};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;flex-shrink:0">${i+1}</div>
-        <div style="flex:1">
-          <div style="font-size:12px;font-weight:500">${n.nombre}</div>
-          <div class="pct-bar" style="margin-top:3px"><div class="pct-fill" style="width:${Math.round(n.total/max*100)}%;background:${COLORES[i%COLORES.length]}"></div></div>
-        </div>
-        <div style="font-size:14px;font-weight:700;min-width:30px;text-align:right;color:${COLORES[i%COLORES.length]}">${n.total}</div>
-      </div>`).join('')
-    : '<div class="empty">Sin datos de novedades de cargue</div>';
+function showTab(name, btn) {
+  tabActivo = name;
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
 }
 
-function destroyChart(id) {
-  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
-}
+function destroyChart(id) { if(charts[id]){charts[id].destroy();delete charts[id];} }
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-// ---- DEMO DATA ----
 function getDemoStats() {
   return {
-    resumen:{ total:28, completados:19, novedades:4, enRuta:3, pctCumplimiento:87, promTiempoCedi:72, totalTiendas:112, tiendasOk:97 },
+    resumen:{total:24,completados:16,novedades:3,enRuta:4,pctCumplimiento:87,promTiempoCedi:160,totalTiendas:96,tiendasOk:83,totalKm:4639,totalPeajes:180000,totalPallet:503,vehiculosOperativos:24,frecuencia:2.25,kmVehDia:193},
     porConductor:[
-      { nombre:'Pedro Ramírez', total:8, completados:6, novedades:1, tiendas:32, tiendasOk:29 },
-      { nombre:'Luis Perdomo',  total:7, completados:5, novedades:2, tiendas:28, tiendasOk:23 },
-      { nombre:'Carlos Muñoz',  total:7, completados:6, novedades:0, tiendas:27, tiendasOk:27 },
-      { nombre:'Jorge Torres',  total:6, completados:2, novedades:1, tiendas:25, tiendasOk:18 }
+      {nombre:'Pedro Ramírez',total:8,completados:6,novedades:1,tiendas:32,tiendasOk:29,km:1200},
+      {nombre:'Luis Perdomo', total:7,completados:5,novedades:2,tiendas:28,tiendasOk:23,km:980},
+      {nombre:'Carlos Muñoz', total:5,completados:4,novedades:0,tiendas:20,tiendasOk:20,km:750},
+      {nombre:'Jorge Torres', total:4,completados:1,novedades:0,tiendas:16,tiendasOk:11,km:709}
     ],
-    porPlaca:[
-      { placa:'ABC-123', total:8, km:1134, novedades:1 },
-      { placa:'XYZ-456', total:7, km:980,  novedades:2 },
-      { placa:'DEF-789', total:7, km:910,  novedades:0 },
-      { placa:'GHI-321', total:6, km:840,  novedades:1 }
+    porVehiculo:[
+      {placa:'ABC-123',placaBackup:'XYZ-001',viajes:7,km:1134,peajes:42000,pallet:148,tiendas:28,novedades:1},
+      {placa:'XYZ-456',placaBackup:'—',       viajes:6,km:980, peajes:36000,pallet:126,tiendas:24,novedades:2},
+      {placa:'DEF-789',placaBackup:'—',       viajes:6,km:910, peajes:34000,pallet:120,tiendas:22,novedades:0},
+      {placa:'GHI-321',placaBackup:'JKL-999', viajes:5,km:615, peajes:28000,pallet:109,tiendas:22,novedades:0}
     ],
-    porTurno:[
-      { turno:'Diurno',  total:20 },
-      { turno:'Nocturno',total:8  }
-    ],
+    porTurno:[{turno:'Diurno',total:18},{turno:'Nocturno',total:6}],
     novedadesCargue:[
-      { nombre:'PALLET EN RESERVA',       total:14 },
-      { nombre:'PALLET MAL CONFORMADAS',  total:9  },
-      { nombre:'PALLET SIN VINIPEL',      total:7  },
-      { nombre:'PALLET POR REMONTES',     total:5  },
-      { nombre:'ESTIBAS NO LOCALIZADAS',  total:3  },
-      { nombre:'CONTENEDORES',            total:2  }
+      {nombre:'PALLET EN RESERVA',total:14},
+      {nombre:'PALLET MAL CONFORMADAS',total:9},
+      {nombre:'PALLET SIN VINIPEL',total:7},
+      {nombre:'PALLET POR REMONTES',total:5},
+      {nombre:'ESTIBAS NO LOCALIZADAS',total:3},
+      {nombre:'CONTENEDORES',total:2}
+    ],
+    novedadesDetalle:[
+      {fecha:'10/04/2026',protocolo:'P-2041',placa:'ABC-123',conductor:'Pedro Ramírez','PALLET EN RESERVA':3,'ESTIBAS NO LOCALIZADAS':1,'PALLET SIN VINIPEL':2,'PALLET MAL CONFORMADAS':0,'PALLET POR REMONTES':1,'CONTENEDORES':0},
+      {fecha:'10/04/2026',protocolo:'P-2042',placa:'XYZ-456',conductor:'Luis Perdomo', 'PALLET EN RESERVA':2,'ESTIBAS NO LOCALIZADAS':0,'PALLET SIN VINIPEL':1,'PALLET MAL CONFORMADAS':3,'PALLET POR REMONTES':2,'CONTENEDORES':1},
+      {fecha:'10/04/2026',protocolo:'P-2043',placa:'DEF-789',conductor:'Carlos Muñoz','PALLET EN RESERVA':4,'ESTIBAS NO LOCALIZADAS':1,'PALLET SIN VINIPEL':0,'PALLET MAL CONFORMADAS':2,'PALLET POR REMONTES':1,'CONTENEDORES':0}
     ]
   };
 }
