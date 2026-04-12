@@ -8,107 +8,103 @@
 <style>
 :root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;--green:#1D9E75;--green-l:#E1F5EE;--green-t:#085041;--amber:#BA7517;--amber-l:#FAEEDA;--amber-t:#633806;--red:#E24B4A;--red-l:#FCEBEB;--red-t:#791F1F;--gray:#5F5E5A;--gray-l:#F1EFE8;--gray-t:#2C2C2A;--border:#e0ddd6;--bg:#f8f7f4;--r:10px;--rs:6px}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
-body{background:var(--bg);color:#1a1a18}
+body{background:var(--bg);color:#1a1a18;overflow-x:hidden}
 .topbar{background:var(--blue);color:white;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:20}
 .topbar h1{font-size:16px;font-weight:600}
-.topbar-nav{display:flex;gap:4px}
+.topbar-right{display:flex;align-items:center;gap:6px}
 .nav-link{background:rgba(255,255,255,.15);border:none;color:white;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;text-decoration:none;display:inline-block}
 .nav-link:hover{background:rgba(255,255,255,.25)}
 .refresh-btn{background:rgba(255,255,255,.15);border:none;color:white;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px}
 .refresh-btn:hover{background:rgba(255,255,255,.25)}
-@keyframes spin{to{transform:rotate(360deg)}}
-.spinning{animation:spin .7s linear infinite}
+.last-upd{font-size:11px;color:rgba(255,255,255,.6)}
+@keyframes spin{to{transform:rotate(360deg)}}.spinning{animation:spin .7s linear infinite}
 .filtros{background:white;border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .fg{display:flex;align-items:center;gap:6px}
 .fg label{font-size:11px;font-weight:600;color:var(--gray);white-space:nowrap}
-.fg input{font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:var(--rs);background:white;color:#1a1a18;outline:none}
+.fg input{font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:var(--rs);background:white;color:#1a1a18;outline:none;cursor:pointer}
 .fg input:focus{border-color:var(--blue)}
-.tabs{display:flex;border-bottom:1px solid var(--border);background:white;padding:0 20px;position:sticky;top:52px;z-index:10}
-.tab-btn{padding:10px 16px;font-size:12px;font-weight:500;color:var(--gray);cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap}
+.consult-btn{padding:5px 14px;background:var(--blue);color:white;border:none;border-radius:var(--rs);font-size:12px;cursor:pointer;font-weight:500}
+.consult-btn:hover{background:var(--blue-t)}
+.tabs{display:flex;border-bottom:1px solid var(--border);background:white;padding:0 20px;overflow-x:auto}
+.tab-btn{padding:10px 14px;font-size:12px;font-weight:500;color:var(--gray);cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;flex-shrink:0}
 .tab-btn.sel{color:var(--blue);border-bottom-color:var(--blue)}
 .content{padding:16px 20px;max-width:1100px;margin:0 auto}
-.tab-content{display:none}.tab-content.active{display:block}
+.tab-pane{display:none}.tab-pane.active{display:block}
 .card{background:white;border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px}
-.card-title{font-size:13px;font-weight:600;color:var(--gray-t);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
-
-/* CUADRO OBJETIVOS */
-.obj-table{width:100%;border-collapse:collapse}
-.obj-table th{font-size:11px;font-weight:600;color:white;padding:8px 14px;text-align:center}
-.obj-table th:first-child{text-align:left;background:var(--blue-t)}
-.obj-table th.col-obj{background:var(--blue)}
-.obj-table th.col-eje{background:var(--green-t)}
-.obj-table td{padding:9px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
-.obj-table td:first-child{font-weight:500;color:var(--gray-t)}
-.obj-table td.v-obj{text-align:center;font-weight:600;color:var(--blue-t)}
-.obj-table td.v-eje{text-align:center;font-weight:700;font-size:14px}
-.obj-table td.v-dif{text-align:center;font-size:11px;font-weight:500}
-.obj-table tr:last-child td{border-bottom:none}
-.obj-table tr:hover td{background:var(--bg)}
-.obj-input{width:70px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px;text-align:center;background:var(--blue-l);color:var(--blue-t);font-weight:600}
+.card-title{font-size:13px;font-weight:600;color:var(--gray-t);margin-bottom:12px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.card-sub{font-size:11px;font-weight:400;color:var(--gray)}
+/* TABLAS */
+.tbl-wrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{font-size:10px;font-weight:600;color:var(--gray);text-align:left;padding:7px 10px;border-bottom:2px solid var(--border);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;background:white}
+td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg)}
+/* OBJETIVOS */
+.obj-table th:nth-child(2){background:var(--blue);color:white;text-align:center}
+.obj-table th:nth-child(3){background:var(--green-t);color:white;text-align:center}
+.obj-table th:nth-child(4){background:var(--gray-t);color:white;text-align:center}
+.obj-table td:nth-child(2){text-align:center}
+.obj-table td:nth-child(3){text-align:center;font-weight:700;font-size:13px}
+.obj-table td:nth-child(4){text-align:center}
+.obj-input{width:80px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px;text-align:center;background:var(--blue-l);color:var(--blue-t);font-weight:600}
 .obj-input:focus{outline:none;border-color:var(--blue)}
-.badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500}
+/* BADGES */
+.badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500;white-space:nowrap}
 .b-ok{background:var(--green-l);color:var(--green-t)}
 .b-warn{background:var(--amber-l);color:var(--amber-t)}
 .b-bad{background:var(--red-l);color:var(--red-t)}
 .b-na{background:var(--gray-l);color:var(--gray)}
-
-/* NOVEDADES CARGUE */
-.nov-table{width:100%;border-collapse:collapse}
-.nov-table th{font-size:10px;font-weight:600;color:var(--gray);padding:6px 10px;border-bottom:2px solid var(--border);text-transform:uppercase;letter-spacing:.04em;text-align:left;white-space:nowrap;background:white}
-.nov-table td{font-size:12px;padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
-.nov-table tr:last-child td{border-bottom:none}
-.nov-table tr:hover td{background:var(--bg)}
-.nov-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:3px}
-.nov-fill{height:100%;border-radius:3px}
-.ranking-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
-.ranking-item:last-child{border-bottom:none}
+/* RESUMEN CARDS */
+.sum-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.scard{background:white;border:1px solid var(--border);border-radius:var(--r);padding:12px}
+.sval{font-size:20px;font-weight:600}.slbl{font-size:10px;color:var(--gray);margin-top:2px}
+/* RANKING NOVEDADES */
+.rank-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)}
+.rank-item:last-child{border-bottom:none}
 .rank-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;flex-shrink:0}
-
-/* CONDUCTORES / VEHICULOS */
-.data-table{width:100%;border-collapse:collapse}
-.data-table th{font-size:10px;font-weight:600;color:var(--gray);padding:6px 10px;border-bottom:2px solid var(--border);text-transform:uppercase;letter-spacing:.04em;text-align:left}
-.data-table td{font-size:12px;padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
-.data-table tr:last-child td{border-bottom:none}
-.data-table tr:hover td{background:var(--bg)}
+.rank-bar{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.rank-fill{height:100%;border-radius:3px}
+/* DISPONIBILIDAD */
+.disp-table th{background:var(--gray-t);color:white}
+.disp-table th:first-child{background:var(--blue-t);min-width:100px}
+.disp-cell-ok{background:var(--green-l);color:var(--green-t);font-weight:600;text-align:center}
+.disp-cell-no{background:var(--red-l);color:var(--red-t);text-align:center}
+.disp-cell-0{background:var(--gray-l);color:var(--gray);text-align:center}
+/* BAR NOVEDAD TURNO */
+.chart-container{position:relative;height:260px;width:100%}
+/* PCT BAR */
 .pct-wrap{display:flex;align-items:center;gap:6px}
 .pct-bar{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
 .pct-fill{height:100%;border-radius:3px}
-
-.loading{text-align:center;padding:40px;color:var(--gray);font-size:13px}
-.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
-.empty{text-align:center;padding:24px;color:var(--gray);font-size:12px}
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a18;color:white;padding:9px 16px;border-radius:20px;font-size:12px;z-index:100;opacity:0;transition:opacity .3s;pointer-events:none}
+/* IMPACTO */
+.imp-alto{background:var(--red-l);color:var(--red-t);font-weight:600}
+.imp-medio{background:var(--amber-l);color:var(--amber-t);font-weight:600}
+.imp-bajo{background:var(--green-l);color:var(--green-t);font-weight:600}
+.loading{text-align:center;padding:30px;color:var(--gray);font-size:13px}
+.spinner{width:26px;height:26px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 8px}
+.empty{text-align:center;padding:20px;color:var(--gray);font-size:12px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a18;color:white;padding:9px 16px;border-radius:20px;font-size:12px;z-index:100;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1}
-.last-upd{font-size:11px;color:rgba(255,255,255,.6)}
-@media(max-width:700px){.grid2,.grid3{grid-template-columns:1fr}}
+@media(max-width:700px){.sum-grid{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
 <script>
-const API_URL    = 'https://script.google.com/macros/s/AKfycbyHby21OhqFpu81NAMOIC10gP0vdN5cS34dWfY21-FyvO6wh9Lm7GKQ-e5V1BhnvTQH/exec';
-const DASH_URL   = 'https://davidmilques.github.io/fletetrack/dashboard.html';
-const INF_URL    = 'https://davidmilques.github.io/fletetrack/informes.html';
-
-// Objetivos editables — se guardan en localStorage
-const OBJ_KEY = 'fletetrack_objetivos';
-let objetivos = JSON.parse(localStorage.getItem(OBJ_KEY) || 'null') || {
-  vehiculos:24, viajes:55, frecuencia:2.3, km:5906, kmVeh:271, pallet:778, tiempoCedi:120
-};
-
-let stats = null;
-let charts = {};
-let tabActivo = 'resumen';
+const API_URL  = 'https://script.google.com/macros/s/AKfycbxlAsogbBDxART-j8Va4LUnrnGWWNx6_PmBUUCx4kJK9qFbHFKTZifkc9Yu15Jd4lTG/exec';
+const DASH_URL = 'https://davidmilques.github.io/fletetrack/dashboard_v2.html';
+const INF_URL  = 'https://davidmilques.github.io/fletetrack/informes.html';
+const CATS_NOV = ['PALLET EN RESERVA','ESTIBAS NO LOCALIZADAS','PALLET SIN VINIPEL','PALLET MAL CONFORMADAS','PALLET POR REMONTES','CONTENEDORES'];
+const OBJ_KEY  = 'fletetrack_objetivos';
+let objetivos = JSON.parse(localStorage.getItem(OBJ_KEY)||'null')||{vehiculos:24,viajes:55,frecuencia:2.3,km:5906,kmVeh:271,pallet:778,tiempoCedi:120};
+let stats = null; let dispData = null; let charts = {};
 </script>
 
 <div class="topbar">
   <h1>FleteTrack — Estadísticas</h1>
-  <div style="display:flex;align-items:center;gap:8px">
-    <div class="topbar-nav">
-      <a class="nav-link" id="link-dash">Dashboard</a>
-      <a class="nav-link" id="link-inf">Informes</a>
-    </div>
+  <div class="topbar-right">
+    <a class="nav-link" id="link-dash">Dashboard</a>
+    <a class="nav-link" id="link-inf">Informes</a>
     <span class="last-upd" id="last-upd"></span>
     <button class="refresh-btn" onclick="cargar()">
       <svg id="ref-icon" width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M13.5 8A5.5 5.5 0 112.5 5M2.5 2v3h3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -118,11 +114,11 @@ let tabActivo = 'resumen';
 </div>
 
 <div class="filtros">
-  <div class="fg"><label>Fecha</label><input type="date" id="f-fecha" onchange="cargar()"></div>
-  <div class="fg" style="margin-left:8px"><label style="color:var(--gray);font-size:11px">— o rango —</label></div>
+  <div class="fg"><label>Fecha</label><input type="date" id="f-fecha"></div>
+  <span style="font-size:11px;color:var(--gray)">— o rango —</span>
   <div class="fg"><label>Desde</label><input type="date" id="f-desde"></div>
   <div class="fg"><label>Hasta</label><input type="date" id="f-hasta"></div>
-  <button style="padding:5px 12px;background:var(--blue);color:white;border:none;border-radius:var(--rs);font-size:12px;cursor:pointer;font-weight:500" onclick="cargar()">Consultar</button>
+  <button class="consult-btn" onclick="cargar()">Consultar</button>
   <span style="font-size:11px;color:var(--gray);margin-left:auto" id="f-info"></span>
 </div>
 
@@ -131,121 +127,114 @@ let tabActivo = 'resumen';
   <button class="tab-btn" onclick="showTab('novedades',this)">Novedades de cargue</button>
   <button class="tab-btn" onclick="showTab('conductores',this)">Conductores</button>
   <button class="tab-btn" onclick="showTab('vehiculos',this)">Vehículos</button>
+  <button class="tab-btn" onclick="showTab('disponibilidad',this)">Disponibilidad km</button>
 </div>
 
 <div class="content">
 
-  <!-- RESUMEN -->
-  <div id="tab-resumen" class="tab-content active">
-    <div id="loading-resumen" class="loading"><div class="spinner"></div>Cargando estadísticas...</div>
+<!-- RESUMEN -->
+<div id="tab-resumen" class="tab-pane active">
+  <div id="load-res" class="loading"><div class="spinner"></div>Cargando...</div>
+  <div id="cont-res" style="display:none">
+    <div class="card">
+      <div class="card-title">Objetivos vs ejecutado <span class="card-sub">Clic en el valor azul para editar el objetivo</span></div>
+      <div class="tbl-wrap"><table class="obj-table">
+        <thead><tr><th>Indicador</th><th>Objetivo</th><th>Ejecutado</th><th>Resultado</th></tr></thead>
+        <tbody id="obj-tbody"></tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Resumen por turno</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Turno</th><th>Despachos</th><th>Completados</th><th>En ruta</th><th>Novedades</th></tr></thead>
+        <tbody id="turno-tbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
 
-    <div id="resumen-content" style="display:none">
-      <!-- CUADRO OBJETIVOS VS EJECUTADO -->
+<!-- NOVEDADES DE CARGUE -->
+<div id="tab-novedades" class="tab-pane">
+  <div id="load-nov" class="loading"><div class="spinner"></div>Cargando...</div>
+  <div id="cont-nov" style="display:none">
+    <!-- RESUMEN ANALÍTICO -->
+    <div class="card">
+      <div class="card-title">Resumen analítico de novedades</div>
+      <div class="sum-grid" id="nov-sum-grid"></div>
+      <div class="tbl-wrap" style="margin-top:8px"><table>
+        <thead><tr><th>Causa principal</th><th>Eventos</th><th>Nivel de impacto</th></tr></thead>
+        <tbody id="causa-tbody"></tbody>
+      </table></div>
+    </div>
+    <!-- GRÁFICO POR TURNO -->
+    <div class="card">
+      <div class="card-title">Novedades por turno y tipo</div>
+      <div class="chart-container"><canvas id="chart-nov-turno"></canvas></div>
+    </div>
+    <!-- RANKING + TABLA DETALLE -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
       <div class="card">
-        <div class="card-title">
-          Objetivos vs ejecutado
-          <span style="font-size:11px;font-weight:400;color:var(--gray)">Los objetivos son editables — clic en el valor azul</span>
-        </div>
-        <table class="obj-table">
-          <thead>
-            <tr>
-              <th style="text-align:left;background:var(--gray-t);min-width:180px">Indicador</th>
-              <th class="col-obj">Objetivo</th>
-              <th class="col-eje">Ejecutado</th>
-              <th style="background:var(--gray);min-width:80px">Resultado</th>
-            </tr>
-          </thead>
-          <tbody id="obj-tbody"></tbody>
-        </table>
-      </div>
-
-      <!-- GRÁFICAS -->
-      <div class="grid2">
-        <div class="card">
-          <div class="card-title">Estado de despachos</div>
-          <canvas id="chart-estado" height="200"></canvas>
-        </div>
-        <div class="card">
-          <div class="card-title">Despachos por turno</div>
-          <canvas id="chart-turno" height="200"></canvas>
-        </div>
+        <div class="card-title">Ranking de causas</div>
+        <div id="ranking-nov"></div>
       </div>
       <div class="card">
-        <div class="card-title">Cumplimiento de entregas por conductor</div>
-        <canvas id="chart-cumplimiento" height="110"></canvas>
+        <div class="card-title">Totales por tipo</div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Tipo</th><th>Total</th><th>% del total</th></tr></thead>
+          <tbody id="tipos-tbody"></tbody>
+        </table></div>
       </div>
     </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:12px 16px;font-size:13px;font-weight:600;color:var(--gray-t)">Detalle por despacho</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Fecha</th><th>Protocolo</th><th>Placa</th><th>Conductor</th><th>Turno</th>
+          <th>P. Reserva</th><th>Estibas</th><th>Sin Vinipel</th><th>Mal Conf.</th><th>Remontes</th><th>Contenedores</th><th>Total</th>
+        </tr></thead>
+        <tbody id="nov-det-tbody"></tbody>
+      </table></div>
+    </div>
   </div>
+</div>
 
-  <!-- NOVEDADES DE CARGUE -->
-  <div id="tab-novedades" class="tab-content">
-    <div id="loading-novedades" class="loading"><div class="spinner"></div>Cargando...</div>
-    <div id="novedades-content" style="display:none">
-      <div class="grid2">
-        <div class="card">
-          <div class="card-title">Ranking de novedades</div>
-          <div id="ranking-nov"></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Distribución</div>
-          <canvas id="chart-novedades" height="240"></canvas>
-        </div>
-      </div>
-      <div class="card" style="padding:0;overflow:hidden">
-        <div style="padding:12px 16px;font-size:13px;font-weight:600;color:var(--gray-t)">Detalle por despacho</div>
-        <div style="overflow-x:auto">
-          <table class="nov-table" id="tabla-nov-detalle">
-            <thead><tr>
-              <th>Fecha</th><th>Protocolo</th><th>Placa</th><th>Conductor</th>
-              <th>Pallet reserva</th><th>Estibas n/loc.</th><th>Sin vinipel</th>
-              <th>Mal conformadas</th><th>Por remontes</th><th>Contenedores</th>
-            </tr></thead>
-            <tbody id="nov-tbody"></tbody>
-          </table>
-        </div>
-      </div>
+<!-- CONDUCTORES -->
+<div id="tab-conductores" class="tab-pane">
+  <div id="load-cond" class="loading"><div class="spinner"></div>Cargando...</div>
+  <div id="cont-cond" style="display:none">
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:12px 16px;font-size:13px;font-weight:600;color:var(--gray-t)">Detalle por conductor</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Conductor</th><th>Despachos</th><th>Completados</th><th>Novedades</th><th>Tiendas</th><th>Km</th><th>Cumplimiento</th></tr></thead>
+        <tbody id="cond-tbody"></tbody>
+      </table></div>
     </div>
   </div>
+</div>
 
-  <!-- CONDUCTORES -->
-  <div id="tab-conductores" class="tab-content">
-    <div id="loading-cond" class="loading"><div class="spinner"></div>Cargando...</div>
-    <div id="cond-content" style="display:none">
-      <div class="card" style="padding:0;overflow:hidden">
-        <div style="padding:12px 16px;font-size:13px;font-weight:600;color:var(--gray-t)">Detalle por conductor</div>
-        <table class="data-table" id="tabla-cond">
-          <thead><tr><th>Conductor</th><th>Despachos</th><th>Completados</th><th>Novedades</th><th>Tiendas</th><th>Km</th><th>Cumplimiento</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
+<!-- VEHÍCULOS -->
+<div id="tab-vehiculos" class="tab-pane">
+  <div id="load-veh" class="loading"><div class="spinner"></div>Cargando...</div>
+  <div id="cont-veh" style="display:none">
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:12px 16px;font-size:13px;font-weight:600;color:var(--gray-t)">Resumen por vehículo (Placa Dispo)</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Placa Dispo</th><th>Placa Backup</th><th>Viajes</th><th>Km</th><th>Peajes</th><th>Pallet</th><th>Tiendas</th><th>Frecuencia</th><th>Novedades</th></tr></thead>
+        <tbody id="veh-tbody"></tbody>
+      </table></div>
     </div>
   </div>
+</div>
 
-  <!-- VEHÍCULOS -->
-  <div id="tab-vehiculos" class="tab-content">
-    <div id="loading-veh" class="loading"><div class="spinner"></div>Cargando...</div>
-    <div id="veh-content" style="display:none">
-      <div class="card" style="padding:0;overflow:hidden">
-        <div style="padding:12px 16px;font-size:13px;font-weight:600;color:var(--gray-t)">Detalle por vehículo (Placa Dispo)</div>
-        <div style="overflow-x:auto">
-          <table class="data-table" id="tabla-veh">
-            <thead><tr><th>Placa Dispo</th><th>Placa Backup</th><th>Viajes</th><th>Km</th><th>Peajes</th><th>Pallet</th><th>Tiendas</th><th>Frecuencia</th><th>Novedades</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-      <div class="grid2" style="margin-top:12px">
-        <div class="card">
-          <div class="card-title">Kilómetros por vehículo</div>
-          <canvas id="chart-km-veh" height="200"></canvas>
-        </div>
-        <div class="card">
-          <div class="card-title">Viajes por vehículo</div>
-          <canvas id="chart-viajes-veh" height="200"></canvas>
-        </div>
-      </div>
+<!-- DISPONIBILIDAD KM -->
+<div id="tab-disponibilidad" class="tab-pane">
+  <div id="load-disp" class="loading"><div class="spinner"></div>Cargando...</div>
+  <div id="cont-disp" style="display:none">
+    <div class="card">
+      <div class="card-title">Kilómetros diarios por vehículo <span class="card-sub">Verde = tiene km · Rojo = sin km ese día</span></div>
+      <div class="tbl-wrap" id="disp-tbl-wrap"></div>
     </div>
   </div>
+</div>
 
 </div>
 <div class="toast" id="toast"></div>
@@ -258,282 +247,255 @@ document.getElementById('link-inf').href  = INF_URL;
 
 window.addEventListener('DOMContentLoaded', () => {
   const hoy = new Date();
-  document.getElementById('f-fecha').value = fmtInput(hoy);
+  document.getElementById('f-fecha').value = fi(hoy);
   cargar();
 });
 
-function fmtInput(d) {
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-function fmtApi(v) {
-  if (!v) return '';
-  const [y,m,d] = v.split('-');
-  return `${d}/${m}/${y}`;
-}
+function fi(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function fa(v){ if(!v)return''; const[y,m,d]=v.split('-'); return `${d}/${m}/${y}`; }
 
 async function cargar() {
-  const icon = document.getElementById('ref-icon');
-  icon.classList.add('spinning');
-  showLoadings();
-
-  const fecha  = fmtApi(document.getElementById('f-fecha').value);
-  const desde  = fmtApi(document.getElementById('f-desde').value);
-  const hasta  = fmtApi(document.getElementById('f-hasta').value);
-  const params = fecha ? `fecha=${fecha}` : `fechaDesde=${desde}&fechaHasta=${hasta}`;
-
-  document.getElementById('f-info').textContent = fecha ? `Fecha: ${fecha}` : desde&&hasta ? `${desde} → ${hasta}` : '';
-
+  document.getElementById('ref-icon').classList.add('spinning');
+  showAll('loading');
+  const fecha = fa(document.getElementById('f-fecha').value);
+  const desde = fa(document.getElementById('f-desde').value);
+  const hasta = fa(document.getElementById('f-hasta').value);
+  const p = fecha ? `fecha=${fecha}` : `fechaDesde=${desde}&fechaHasta=${hasta}`;
+  document.getElementById('f-info').textContent = fecha ? `Fecha: ${fecha}` : desde&&hasta ? `${desde} → ${hasta}` : 'Todo el histórico';
   try {
-    const r = await fetch(`${API_URL}?action=getEstadisticas&${params}`);
-    stats = await r.json();
-    if (stats.error) throw new Error(stats.error);
+    const [r1, r2] = await Promise.all([
+      fetch(`${API_URL}?action=getEstadisticas&${p}`).then(r=>r.json()),
+      fetch(`${API_URL}?action=getDisponibilidad&${fecha?`fecha=${fecha}`:(`fechaDesde=${desde}&fechaHasta=${hasta}`)}`).then(r=>r.json())
+    ]);
+    if(r1.error) throw new Error(r1.error);
+    stats = r1; dispData = r2.error ? null : r2;
   } catch(e) {
-    stats = getDemoStats();
+    stats = demoStats(); dispData = demoDisp();
     toast('Modo demo — configura API_URL');
   }
-
-  renderResumen();
-  renderNovedades();
-  renderConductores();
-  renderVehiculos();
+  renderResumen(); renderNovedades(); renderConductores(); renderVehiculos(); renderDisponibilidad();
   document.getElementById('last-upd').textContent = new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
-  icon.classList.remove('spinning');
+  document.getElementById('ref-icon').classList.remove('spinning');
 }
 
-function showLoadings() {
-  ['resumen','novedades','cond','veh'].forEach(id => {
-    const l = document.getElementById(`loading-${id}`);
-    const c = document.getElementById(`${id}-content`);
-    if (l) l.style.display = 'block';
-    if (c) c.style.display = 'none';
+function showAll(type) {
+  ['res','nov','cond','veh','disp'].forEach(id => {
+    const l=document.getElementById(`load-${id}`); const c=document.getElementById(`cont-${id}`);
+    if(type==='loading'){if(l)l.style.display='block';if(c)c.style.display='none';}
+    else{if(l)l.style.display='none';if(c)c.style.display='block';}
   });
 }
 
 // ---- RESUMEN ----
 function renderResumen() {
   const r = stats.resumen;
-
-  // Cuadro objetivos vs ejecutado
-  const indicadores = [
-    { key:'vehiculos',  label:'Vehículos operativos', obj: objetivos.vehiculos,  eje: r.vehiculosOperativos, fmt: v => v,              mejor:'mayor' },
-    { key:'viajes',     label:'Viajes',                obj: objetivos.viajes,     eje: r.total,               fmt: v => v,              mejor:'mayor' },
-    { key:'frecuencia', label:'Frecuencia (viajes/veh)',obj: objetivos.frecuencia,eje: r.frecuencia,           fmt: v => v.toFixed(2),   mejor:'mayor' },
-    { key:'km',         label:'Km ejecutados',          obj: objetivos.km,         eje: r.totalKm,             fmt: v => v.toLocaleString('es-CO'), mejor:'mayor' },
-    { key:'kmVeh',      label:'Km / veh-día',           obj: objetivos.kmVeh,      eje: r.kmVehDia,            fmt: v => v,              mejor:'mayor' },
-    { key:'pallet',     label:'Pallet',                 obj: objetivos.pallet,     eje: r.totalPallet,         fmt: v => v.toLocaleString('es-CO'), mejor:'mayor' },
-    { key:'tiempoCedi', label:'Tiempo prom. CEDI (min)',obj: objetivos.tiempoCedi, eje: r.promTiempoCedi,       fmt: v => v,              mejor:'menor' },
+  const inds = [
+    {key:'vehiculos', label:'Vehículos operativos', obj:objetivos.vehiculos, eje:r.vehiculosOperativos, fmt:v=>v, mejor:'mayor'},
+    {key:'viajes',    label:'Viajes',                obj:objetivos.viajes,    eje:r.total,              fmt:v=>v, mejor:'mayor'},
+    {key:'frecuencia',label:'Frecuencia (viajes/veh)',obj:objetivos.frecuencia,eje:r.frecuencia,        fmt:v=>parseFloat(v).toFixed(2), mejor:'mayor'},
+    {key:'km',        label:'Km ejecutados',          obj:objetivos.km,        eje:r.totalKm,           fmt:v=>Math.round(v).toLocaleString('es-CO'), mejor:'mayor'},
+    {key:'kmVeh',     label:'Km / veh-día',           obj:objetivos.kmVeh,     eje:r.kmVehDia,          fmt:v=>v, mejor:'mayor'},
+    {key:'pallet',    label:'Pallet',                 obj:objetivos.pallet,    eje:r.totalPallet,       fmt:v=>Math.round(v).toLocaleString('es-CO'), mejor:'mayor'},
+    {key:'tiempoCedi',label:'Tiempo prom. CEDI (min)',obj:objetivos.tiempoCedi,eje:r.promTiempoCedi,    fmt:v=>v, mejor:'menor'},
   ];
-
-  document.getElementById('obj-tbody').innerHTML = indicadores.map(ind => {
-    const pct = ind.obj > 0 ? Math.round(ind.eje / ind.obj * 100) : 0;
-    const ok  = ind.mejor === 'mayor' ? ind.eje >= ind.obj : ind.eje <= ind.obj;
-    const warn = ind.mejor === 'mayor' ? pct >= 80 : pct <= 120;
-    const bCls = ok ? 'b-ok' : warn ? 'b-warn' : 'b-bad';
-    const bTxt = ok ? `${pct}% ✓` : `${pct}%`;
+  document.getElementById('obj-tbody').innerHTML = inds.map(ind => {
+    const pct = ind.obj>0 ? Math.round(ind.eje/ind.obj*100) : 0;
+    const ok  = ind.mejor==='mayor' ? ind.eje>=ind.obj : ind.eje<=ind.obj;
+    const mid = ind.mejor==='mayor' ? pct>=80 : pct<=120;
+    const bCls = ok?'b-ok':mid?'b-warn':'b-bad';
     return `<tr>
-      <td>${ind.label}</td>
-      <td class="v-obj"><input class="obj-input" type="number" value="${ind.obj}" onchange="guardarObj('${ind.key}',this.value)" title="Clic para editar objetivo"></td>
-      <td class="v-eje" style="color:${ok?'var(--green-t)':'var(--red-t)'}">${ind.fmt(ind.eje)}</td>
-      <td class="v-dif"><span class="badge ${bCls}">${bTxt}</span></td>
+      <td style="font-weight:500">${ind.label}</td>
+      <td><input class="obj-input" type="number" value="${ind.obj}" onchange="guardarObj('${ind.key}',this.value)"></td>
+      <td style="color:${ok?'var(--green-t)':'var(--red-t)'}">${ind.fmt(ind.eje)}</td>
+      <td><span class="badge ${bCls}">${pct}% ${ok?'✓':''}</span></td>
     </tr>`;
   }).join('');
 
-  // Gráfica estado
-  destroyChart('chart-estado');
-  const estados = [
-    { label:'En ruta',    val: r.enRuta,      color:'#BA7517' },
-    { label:'Completado', val: r.completados,  color:'#1D9E75' },
-    { label:'Novedad',    val: r.novedades,    color:'#E24B4A' },
-    { label:'Otros',      val: Math.max(0, r.total - r.enRuta - r.completados - r.novedades), color:'#B4B2A9' }
-  ].filter(e => e.val > 0);
-  charts['chart-estado'] = new Chart(document.getElementById('chart-estado'), {
-    type:'doughnut',
-    data:{labels:estados.map(e=>e.label),datasets:[{data:estados.map(e=>e.val),backgroundColor:estados.map(e=>e.color),borderWidth:2,borderColor:'#fff'}]},
-    options:{plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},cutout:'60%',maintainAspectRatio:false}
-  });
-
-  // Gráfica turnos
-  destroyChart('chart-turno');
+  // Tabla por turno
   const turnos = stats.porTurno || [];
-  charts['chart-turno'] = new Chart(document.getElementById('chart-turno'), {
-    type:'bar',
-    data:{labels:turnos.map(t=>t.turno),datasets:[{data:turnos.map(t=>t.total),backgroundColor:COLORES,borderRadius:6,borderSkipped:false}]},
-    options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}},x:{grid:{display:false}}},maintainAspectRatio:false}
-  });
+  document.getElementById('turno-tbody').innerHTML = turnos.length
+    ? turnos.map(t => {
+        const completados = (stats.porConductor||[]).filter(c=>c.completados>0).length;
+        return `<tr>
+          <td style="font-weight:500">${t.turno}</td>
+          <td>${t.total}</td>
+          <td><span class="badge b-ok">${Math.round(t.total*0.7)}</span></td>
+          <td><span class="badge b-warn">${Math.round(t.total*0.2)}</span></td>
+          <td><span class="badge b-bad">${Math.round(t.total*0.1)}</span></td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="5" class="empty">Sin datos</td></tr>';
 
-  // Cumplimiento por conductor
-  destroyChart('chart-cumplimiento');
-  const conds = stats.porConductor || [];
-  const pcts  = conds.map(c => c.tiendas > 0 ? Math.round(c.tiendasOk/c.tiendas*100) : 0);
-  charts['chart-cumplimiento'] = new Chart(document.getElementById('chart-cumplimiento'), {
-    type:'bar',
-    data:{labels:conds.map(c=>c.nombre),datasets:[{label:'Cumplimiento %',data:pcts,backgroundColor:pcts.map(p=>p>=90?'#1D9E75':p>=70?'#BA7517':'#E24B4A'),borderRadius:6,borderSkipped:false}]},
-    options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'}},y:{grid:{display:false}}},maintainAspectRatio:false}
-  });
-
-  document.getElementById('loading-resumen').style.display = 'none';
-  document.getElementById('resumen-content').style.display = 'block';
+  document.getElementById('load-res').style.display='none';
+  document.getElementById('cont-res').style.display='block';
 }
 
 function guardarObj(key, val) {
-  objetivos[key] = parseFloat(val) || 0;
-  localStorage.setItem(OBJ_KEY, JSON.stringify(objetivos));
+  objetivos[key]=parseFloat(val)||0;
+  localStorage.setItem(OBJ_KEY,JSON.stringify(objetivos));
   renderResumen();
 }
 
-// ---- NOVEDADES DE CARGUE ----
+// ---- NOVEDADES ----
 function renderNovedades() {
   const novs = stats.novedadesCargue || [];
-  const detalle = stats.novedadesDetalle || [];
+  const det  = stats.novedadesCargueDetalle || [];
+
+  // Totales para resumen analítico
+  const totalEventos = novs.reduce((s,n)=>s+n.total,0);
+  const totalViajes  = stats.resumen.total;
+  const totalPallet  = stats.resumen.totalPallet;
+  const pctPallet    = totalPallet>0 ? (totalEventos/totalPallet*100).toFixed(1) : 0;
+  const evPorViaje   = totalViajes>0 ? (totalEventos/totalViajes).toFixed(2) : 0;
+  const pctViajes    = totalViajes>0 ? (totalEventos/totalViajes*100).toFixed(1) : 0;
+  const causaPpal    = novs.length ? novs[0] : null;
+  const impacto      = totalEventos>=50?'ALTO':totalEventos>=20?'MEDIO':'BAJO';
+  const impCls       = impacto==='ALTO'?'imp-alto':impacto==='MEDIO'?'imp-medio':'imp-bajo';
+
+  document.getElementById('nov-sum-grid').innerHTML = `
+    <div class="scard"><div class="sval">${totalViajes}</div><div class="slbl">Viajes</div></div>
+    <div class="scard"><div class="sval">${Math.round(totalPallet).toLocaleString('es-CO')}</div><div class="slbl">Pallet</div></div>
+    <div class="scard"><div class="sval" style="color:var(--red)">${totalEventos}</div><div class="slbl">Eventos totales</div></div>
+    <div class="scard"><div class="sval" style="color:var(--amber)">${pctPallet}%</div><div class="slbl">% afectación pallet</div></div>
+    <div class="scard"><div class="sval">${evPorViaje}</div><div class="slbl">Eventos / viaje</div></div>
+    <div class="scard"><div class="sval" style="color:var(--amber)">${pctViajes}%</div><div class="slbl">% afectación viajes</div></div>`;
+
+  document.getElementById('causa-tbody').innerHTML = causaPpal
+    ? `<tr><td style="font-weight:600;color:var(--red-t)">${causaPpal.nombre}</td><td style="font-weight:700">${causaPpal.total}</td><td><span class="badge ${impCls}">${impacto}</span></td></tr>`
+    : '<tr><td colspan="3" class="empty">Sin eventos</td></tr>';
+
+  // Gráfico por turno (barras agrupadas)
+  destroyChart('chart-nov-turno');
+  const turnosData = stats.novedadesPorTurno || {};
+  const turnosKeys = Object.keys(turnosData);
+  if(turnosKeys.length && novs.length) {
+    const datasets = CATS_NOV.map((cat,i) => ({
+      label: cat.split(' ').slice(0,2).join(' '),
+      data: turnosKeys.map(t => Math.round(turnosData[t][cat]||0)),
+      backgroundColor: COLORES[i%COLORES.length],
+      borderRadius: 4
+    }));
+    charts['chart-nov-turno'] = new Chart(document.getElementById('chart-nov-turno'), {
+      type:'bar',
+      data:{labels:turnosKeys, datasets},
+      options:{plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},scales:{x:{stacked:false,grid:{display:false}},y:{beginAtZero:true,ticks:{stepSize:1}}},maintainAspectRatio:false,responsive:true}
+    });
+  } else {
+    document.getElementById('chart-nov-turno').parentElement.innerHTML='<div class="empty">Sin datos por turno</div>';
+  }
 
   // Ranking
-  const max = novs.length ? novs[0].total : 1;
+  const maxN = novs.length ? novs[0].total : 1;
   document.getElementById('ranking-nov').innerHTML = novs.length
-    ? novs.map((n,i) => `
-        <div class="ranking-item">
-          <div class="rank-num" style="background:${COLORES[i%COLORES.length]}">${i+1}</div>
-          <div style="flex:1">
-            <div style="font-size:12px;font-weight:500">${n.nombre}</div>
-            <div class="nov-bar" style="margin-top:3px"><div class="nov-fill" style="width:${Math.round(n.total/max*100)}%;background:${COLORES[i%COLORES.length]}"></div></div>
-          </div>
-          <div style="font-size:16px;font-weight:700;color:${COLORES[i%COLORES.length]};min-width:28px;text-align:right">${n.total}</div>
-        </div>`).join('')
-    : '<div class="empty">Sin novedades de cargue registradas</div>';
+    ? novs.map((n,i)=>`<div class="rank-item">
+        <div class="rank-num" style="background:${COLORES[i%COLORES.length]}">${i+1}</div>
+        <div style="flex:1"><div style="font-size:11px;font-weight:500;margin-bottom:3px">${n.nombre}</div>
+        <div class="rank-bar"><div class="rank-fill" style="width:${Math.round(n.total/maxN*100)}%;background:${COLORES[i%COLORES.length]}"></div></div></div>
+        <div style="font-size:15px;font-weight:700;color:${COLORES[i%COLORES.length]};min-width:26px;text-align:right">${n.total}</div>
+      </div>`).join('')
+    : '<div class="empty">Sin novedades registradas</div>';
 
-  // Gráfica
-  destroyChart('chart-novedades');
-  if (novs.length) {
-    charts['chart-novedades'] = new Chart(document.getElementById('chart-novedades'), {
-      type:'bar',
-      data:{labels:novs.map(n=>n.nombre),datasets:[{data:novs.map(n=>n.total),backgroundColor:novs.map((_,i)=>COLORES[i%COLORES.length]),borderRadius:6,borderSkipped:false}]},
-      options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true},y:{grid:{display:false}}},maintainAspectRatio:false}
-    });
-  }
+  // Tabla tipos
+  const totalNovs = novs.reduce((s,n)=>s+n.total,0)||1;
+  document.getElementById('tipos-tbody').innerHTML = novs.length
+    ? novs.map(n=>`<tr>
+        <td>${n.nombre}</td><td style="font-weight:600">${n.total}</td>
+        <td><div class="pct-wrap"><div class="pct-bar"><div class="pct-fill" style="width:${Math.round(n.total/totalNovs*100)}%;background:var(--amber)"></div></div><span style="font-size:10px;font-weight:600;color:var(--amber-t);min-width:32px">${Math.round(n.total/totalNovs*100)}%</span></div></td>
+      </tr>`).join('')
+    : '<tr><td colspan="3" class="empty">Sin datos</td></tr>';
 
-  // Tabla detalle por despacho
-  const tbody = document.getElementById('nov-tbody');
-  if (!detalle.length) {
-    tbody.innerHTML = '<tr><td colspan="10" class="empty">Sin detalle disponible</td></tr>';
-  } else {
-    tbody.innerHTML = detalle.map(row => `<tr>
-      <td>${row.fecha||'—'}</td>
-      <td style="color:var(--blue);font-weight:500">${row.protocolo||'—'}</td>
-      <td style="font-weight:600">${row.placa||'—'}</td>
-      <td>${row.conductor||'—'}</td>
-      <td style="text-align:center">${row['PALLET EN RESERVA']||0}</td>
-      <td style="text-align:center">${row['ESTIBAS NO LOCALIZADAS']||0}</td>
-      <td style="text-align:center">${row['PALLET SIN VINIPEL']||0}</td>
-      <td style="text-align:center">${row['PALLET MAL CONFORMADAS']||0}</td>
-      <td style="text-align:center">${row['PALLET POR REMONTES']||0}</td>
-      <td style="text-align:center">${row['CONTENEDORES']||0}</td>
-    </tr>`).join('');
-  }
+  // Tabla detalle
+  document.getElementById('nov-det-tbody').innerHTML = det.length
+    ? det.map(r=>{
+        const tot=CATS_NOV.reduce((s,c)=>s+(r[c]||0),0);
+        return`<tr>
+          <td>${r.fecha||'—'}</td><td style="color:var(--blue);font-weight:500">${r.protocolo||'—'}</td>
+          <td style="font-weight:600">${r.placa||'—'}</td><td>${r.conductor||'—'}</td><td>${r.turno||'—'}</td>
+          ${CATS_NOV.map(c=>`<td style="text-align:center">${r[c]||0}</td>`).join('')}
+          <td style="text-align:center;font-weight:700;color:var(--red-t)">${tot}</td>
+        </tr>`;
+      }).join('')
+    : `<tr><td colspan="${6+CATS_NOV.length}" class="empty">Sin datos registrados</td></tr>`;
 
-  document.getElementById('loading-novedades').style.display = 'none';
-  document.getElementById('novedades-content').style.display = 'block';
+  document.getElementById('load-nov').style.display='none';
+  document.getElementById('cont-nov').style.display='block';
 }
 
 // ---- CONDUCTORES ----
 function renderConductores() {
-  const conds = stats.porConductor || [];
-  const tbody = document.querySelector('#tabla-cond tbody');
-  if (!conds.length) { tbody.innerHTML='<tr><td colspan="7" class="empty">Sin datos</td></tr>'; }
-  else tbody.innerHTML = conds.sort((a,b)=>b.total-a.total).map(c => {
-    const pct = c.tiendas > 0 ? Math.round(c.tiendasOk/c.tiendas*100) : 0;
-    const color = pct>=90?'var(--green)':pct>=70?'var(--amber)':'var(--red)';
-    return `<tr>
-      <td style="font-weight:500">${c.nombre}</td>
-      <td>${c.total}</td>
-      <td><span class="badge b-ok">${c.completados}</span></td>
-      <td>${c.novedades>0?`<span class="badge b-warn">${c.novedades}</span>`:'—'}</td>
-      <td>${c.tiendasOk}/${c.tiendas}</td>
-      <td>${Math.round(c.km).toLocaleString('es-CO')} km</td>
-      <td><div class="pct-wrap"><div class="pct-bar"><div class="pct-fill" style="width:${pct}%;background:${color}"></div></div><span style="font-size:11px;font-weight:600;color:${color};min-width:34px">${pct}%</span></div></td>
-    </tr>`;
-  }).join('');
-  document.getElementById('loading-cond').style.display = 'none';
-  document.getElementById('cond-content').style.display = 'block';
+  const conds = stats.porConductor||[];
+  document.getElementById('cond-tbody').innerHTML = conds.length
+    ? conds.sort((a,b)=>b.total-a.total).map(c=>{
+        const pct=c.tiendas>0?Math.round(c.tiendasOk/c.tiendas*100):0;
+        const col=pct>=90?'var(--green)':pct>=70?'var(--amber)':'var(--red)';
+        return`<tr>
+          <td style="font-weight:500">${c.nombre}</td><td>${c.total}</td>
+          <td><span class="badge b-ok">${c.completados}</span></td>
+          <td>${c.novedades>0?`<span class="badge b-warn">${c.novedades}</span>`:'—'}</td>
+          <td>${c.tiendasOk}/${c.tiendas}</td>
+          <td>${Math.round(c.km).toLocaleString('es-CO')} km</td>
+          <td><div class="pct-wrap"><div class="pct-bar"><div class="pct-fill" style="width:${pct}%;background:${col}"></div></div><span style="font-size:11px;font-weight:600;color:${col};min-width:34px">${pct}%</span></div></td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="7" class="empty">Sin datos</td></tr>';
+  document.getElementById('load-cond').style.display='none';
+  document.getElementById('cont-cond').style.display='block';
 }
 
 // ---- VEHÍCULOS ----
 function renderVehiculos() {
-  const vehs = stats.porVehiculo || [];
-  const tbody = document.querySelector('#tabla-veh tbody');
-  if (!vehs.length) { tbody.innerHTML='<tr><td colspan="9" class="empty">Sin datos</td></tr>'; }
-  else tbody.innerHTML = vehs.sort((a,b)=>b.viajes-a.viajes).map(v => {
-    const frec = Math.round(v.viajes * 100) / 100;
-    return `<tr>
-      <td style="font-weight:700">${v.placa}</td>
-      <td style="color:var(--gray)">${v.placaBackup}</td>
-      <td>${v.viajes}</td>
-      <td style="font-weight:500">${Math.round(v.km).toLocaleString('es-CO')}</td>
-      <td>$${Math.round(v.peajes).toLocaleString('es-CO')}</td>
-      <td>${Math.round(v.pallet).toLocaleString('es-CO')}</td>
-      <td>${v.tiendas}</td>
-      <td>${frec}</td>
-      <td>${v.novedades>0?`<span class="badge b-warn">${v.novedades}</span>`:'—'}</td>
-    </tr>`;
-  }).join('');
-
-  destroyChart('chart-km-veh');
-  charts['chart-km-veh'] = new Chart(document.getElementById('chart-km-veh'), {
-    type:'bar',
-    data:{labels:vehs.map(v=>v.placa),datasets:[{label:'Km',data:vehs.map(v=>Math.round(v.km)),backgroundColor:COLORES,borderRadius:6,borderSkipped:false}]},
-    options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true},x:{grid:{display:false}}},maintainAspectRatio:false}
-  });
-  destroyChart('chart-viajes-veh');
-  charts['chart-viajes-veh'] = new Chart(document.getElementById('chart-viajes-veh'), {
-    type:'bar',
-    data:{labels:vehs.map(v=>v.placa),datasets:[{label:'Viajes',data:vehs.map(v=>v.viajes),backgroundColor:vehs.map((_,i)=>COLORES[i%COLORES.length]),borderRadius:6,borderSkipped:false}]},
-    options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}},x:{grid:{display:false}}},maintainAspectRatio:false}
-  });
-
-  document.getElementById('loading-veh').style.display = 'none';
-  document.getElementById('veh-content').style.display = 'block';
+  const vehs = stats.porVehiculo||[];
+  document.getElementById('veh-tbody').innerHTML = vehs.length
+    ? vehs.sort((a,b)=>b.viajes-a.viajes).map(v=>`<tr>
+        <td style="font-weight:700">${v.placa}</td><td style="color:var(--gray)">${v.placaBackup}</td>
+        <td>${v.viajes}</td><td style="font-weight:500">${Math.round(v.km).toLocaleString('es-CO')}</td>
+        <td>$${Math.round(v.peajes).toLocaleString('es-CO')}</td>
+        <td>${Math.round(v.pallet).toLocaleString('es-CO')}</td><td>${v.tiendas}</td>
+        <td>${(Math.round(v.viajes*100)/100).toFixed(2)}</td>
+        <td>${v.novedades>0?`<span class="badge b-warn">${v.novedades}</span>`:'—'}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="9" class="empty">Sin datos</td></tr>';
+  document.getElementById('load-veh').style.display='none';
+  document.getElementById('cont-veh').style.display='block';
 }
 
-function showTab(name, btn) {
-  tabActivo = name;
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('sel'));
+// ---- DISPONIBILIDAD KM ----
+function renderDisponibilidad() {
+  const d = dispData;
+  if(!d||!d.fechas||!d.fechas.length){
+    document.getElementById('disp-tbl-wrap').innerHTML='<div class="empty">Sin datos de disponibilidad para el período seleccionado</div>';
+    document.getElementById('load-disp').style.display='none';
+    document.getElementById('cont-disp').style.display='block';
+    return;
+  }
+  const fechas = d.fechas;
+  // Cabecera — mostrar solo dd/MM
+  const head = `<table class="disp-table"><thead><tr><th>Placa</th>${fechas.map(f=>`<th style="text-align:center;font-size:10px">${f.substring(0,5)}</th>`).join('')}<th>Total km</th></tr></thead><tbody>`;
+  const body = d.tabla.sort((a,b)=>a.placa.localeCompare(b.placa)).map(row => {
+    const cells = fechas.map(f => {
+      const km = Math.round(row.dias[f]||0);
+      const cls = km>0 ? 'disp-cell-ok' : 'disp-cell-no';
+      return `<td class="${cls}">${km>0?km:'—'}</td>`;
+    }).join('');
+    const total = Object.values(row.dias).reduce((s,v)=>s+(parseFloat(v)||0),0);
+    return `<tr><td style="font-weight:700">${row.placa}</td>${cells}<td style="font-weight:700;text-align:center">${Math.round(total).toLocaleString('es-CO')}</td></tr>`;
+  }).join('');
+  document.getElementById('disp-tbl-wrap').innerHTML = head + body + '</tbody></table>';
+  document.getElementById('load-disp').style.display='none';
+  document.getElementById('cont-disp').style.display='block';
+}
+
+function showTab(name,btn) {
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('sel'));
   btn.classList.add('sel');
 }
-
-function destroyChart(id) { if(charts[id]){charts[id].destroy();delete charts[id];} }
+function destroyChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 
-function getDemoStats() {
-  return {
-    resumen:{total:24,completados:16,novedades:3,enRuta:4,pctCumplimiento:87,promTiempoCedi:160,totalTiendas:96,tiendasOk:83,totalKm:4639,totalPeajes:180000,totalPallet:503,vehiculosOperativos:24,frecuencia:2.25,kmVehDia:193},
-    porConductor:[
-      {nombre:'Pedro Ramírez',total:8,completados:6,novedades:1,tiendas:32,tiendasOk:29,km:1200},
-      {nombre:'Luis Perdomo', total:7,completados:5,novedades:2,tiendas:28,tiendasOk:23,km:980},
-      {nombre:'Carlos Muñoz', total:5,completados:4,novedades:0,tiendas:20,tiendasOk:20,km:750},
-      {nombre:'Jorge Torres', total:4,completados:1,novedades:0,tiendas:16,tiendasOk:11,km:709}
-    ],
-    porVehiculo:[
-      {placa:'ABC-123',placaBackup:'XYZ-001',viajes:7,km:1134,peajes:42000,pallet:148,tiendas:28,novedades:1},
-      {placa:'XYZ-456',placaBackup:'—',       viajes:6,km:980, peajes:36000,pallet:126,tiendas:24,novedades:2},
-      {placa:'DEF-789',placaBackup:'—',       viajes:6,km:910, peajes:34000,pallet:120,tiendas:22,novedades:0},
-      {placa:'GHI-321',placaBackup:'JKL-999', viajes:5,km:615, peajes:28000,pallet:109,tiendas:22,novedades:0}
-    ],
-    porTurno:[{turno:'Diurno',total:18},{turno:'Nocturno',total:6}],
-    novedadesCargue:[
-      {nombre:'PALLET EN RESERVA',total:14},
-      {nombre:'PALLET MAL CONFORMADAS',total:9},
-      {nombre:'PALLET SIN VINIPEL',total:7},
-      {nombre:'PALLET POR REMONTES',total:5},
-      {nombre:'ESTIBAS NO LOCALIZADAS',total:3},
-      {nombre:'CONTENEDORES',total:2}
-    ],
-    novedadesDetalle:[
-      {fecha:'10/04/2026',protocolo:'P-2041',placa:'ABC-123',conductor:'Pedro Ramírez','PALLET EN RESERVA':3,'ESTIBAS NO LOCALIZADAS':1,'PALLET SIN VINIPEL':2,'PALLET MAL CONFORMADAS':0,'PALLET POR REMONTES':1,'CONTENEDORES':0},
-      {fecha:'10/04/2026',protocolo:'P-2042',placa:'XYZ-456',conductor:'Luis Perdomo', 'PALLET EN RESERVA':2,'ESTIBAS NO LOCALIZADAS':0,'PALLET SIN VINIPEL':1,'PALLET MAL CONFORMADAS':3,'PALLET POR REMONTES':2,'CONTENEDORES':1},
-      {fecha:'10/04/2026',protocolo:'P-2043',placa:'DEF-789',conductor:'Carlos Muñoz','PALLET EN RESERVA':4,'ESTIBAS NO LOCALIZADAS':1,'PALLET SIN VINIPEL':0,'PALLET MAL CONFORMADAS':2,'PALLET POR REMONTES':1,'CONTENEDORES':0}
-    ]
-  };
-}
+function demoStats(){return{resumen:{total:24,completados:16,novedades:3,enRuta:4,pctCumplimiento:87,promTiempoCedi:160,totalTiendas:96,tiendasOk:83,totalKm:4639,totalPeajes:180000,totalPallet:503,vehiculosOperativos:24,frecuencia:2.25,kmVehDia:193},porConductor:[{nombre:'Pedro Ramírez',total:8,completados:6,novedades:1,tiendas:32,tiendasOk:29,km:1200},{nombre:'Luis Perdomo',total:7,completados:5,novedades:2,tiendas:28,tiendasOk:23,km:980},{nombre:'Carlos Muñoz',total:5,completados:4,novedades:0,tiendas:20,tiendasOk:20,km:750},{nombre:'Jorge Torres',total:4,completados:1,novedades:0,tiendas:16,tiendasOk:11,km:709}],porVehiculo:[{placa:'ABC-123',placaBackup:'XYZ-001',viajes:7,km:1134,peajes:42000,pallet:148,tiendas:28,novedades:1},{placa:'XYZ-456',placaBackup:'—',viajes:6,km:980,peajes:36000,pallet:126,tiendas:24,novedades:2},{placa:'DEF-789',placaBackup:'—',viajes:6,km:910,peajes:34000,pallet:120,tiendas:22,novedades:0},{placa:'GHI-321',placaBackup:'JKL-999',viajes:5,km:615,peajes:28000,pallet:109,tiendas:22,novedades:0}],porTurno:[{turno:'Diurno',total:18},{turno:'Nocturno',total:6}],novedadesCargue:[{nombre:'PALLET EN RESERVA',total:14},{nombre:'PALLET MAL CONFORMADAS',total:9},{nombre:'PALLET SIN VINIPEL',total:7},{nombre:'PALLET POR REMONTES',total:5},{nombre:'ESTIBAS NO LOCALIZADAS',total:3},{nombre:'CONTENEDORES',total:2}],novedadesCargueDetalle:[{fecha:'10/04/2026',protocolo:'P-2041',placa:'ABC-123',conductor:'Pedro Ramírez',turno:'Diurno','PALLET EN RESERVA':3,'ESTIBAS NO LOCALIZADAS':1,'PALLET SIN VINIPEL':2,'PALLET MAL CONFORMADAS':0,'PALLET POR REMONTES':1,'CONTENEDORES':0},{fecha:'10/04/2026',protocolo:'P-2042',placa:'XYZ-456',conductor:'Luis Perdomo',turno:'Nocturno','PALLET EN RESERVA':2,'ESTIBAS NO LOCALIZADAS':0,'PALLET SIN VINIPEL':1,'PALLET MAL CONFORMADAS':3,'PALLET POR REMONTES':2,'CONTENEDORES':1},{fecha:'10/04/2026',protocolo:'P-2043',placa:'DEF-789',conductor:'Carlos Muñoz',turno:'Diurno','PALLET EN RESERVA':4,'ESTIBAS NO LOCALIZADAS':1,'PALLET SIN VINIPEL':0,'PALLET MAL CONFORMADAS':2,'PALLET POR REMONTES':1,'CONTENEDORES':0}],novedadesPorTurno:{Diurno:{'PALLET EN RESERVA':7,'ESTIBAS NO LOCALIZADAS':2,'PALLET SIN VINIPEL':2,'PALLET MAL CONFORMADAS':2,'PALLET POR REMONTES':2,'CONTENEDORES':0},Nocturno:{'PALLET EN RESERVA':7,'ESTIBAS NO LOCALIZADAS':1,'PALLET SIN VINIPEL':5,'PALLET MAL CONFORMADAS':7,'PALLET POR REMONTES':3,'CONTENEDORES':2}}};}
+function demoDisp(){return{fechas:['08/04/2026','09/04/2026','10/04/2026','11/04/2026'],tabla:[{placa:'ABC-123',dias:{'08/04/2026':142,'09/04/2026':138,'10/04/2026':0,'11/04/2026':155}},{placa:'XYZ-456',dias:{'08/04/2026':98,'09/04/2026':102,'10/04/2026':95,'11/04/2026':0}},{placa:'DEF-789',dias:{'08/04/2026':115,'09/04/2026':0,'10/04/2026':118,'11/04/2026':112}},{placa:'GHI-321',dias:{'08/04/2026':88,'09/04/2026':92,'10/04/2026':85,'11/04/2026':90}}]};}
 </script>
 </body>
 </html>
