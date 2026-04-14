@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#185FA5">
-<title>TrasladarR3 — Conductor</title>
+<title>FleteTrack — Conductor</title>
 <style>
 :root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;--green:#1D9E75;--green-l:#E1F5EE;--green-t:#085041;--amber:#BA7517;--amber-l:#FAEEDA;--amber-t:#633806;--red:#E24B4A;--red-l:#FCEBEB;--border:#e0ddd6;--bg:#f8f7f4;--gray:#5F5E5A;--gray-l:#F1EFE8;--gray-t:#2C2C2A;--r:10px;--rs:6px}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
@@ -69,7 +69,7 @@ input[type=file]{display:none}
 </head>
 <body>
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbxlAsogbBDxART-j8Va4LUnrnGWWNx6_PmBUUCx4kJK9qFbHFKTZifkc9Yu15Jd4lTG/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbw7L5rVei3L0yJp-TPXrVCGE1km6QcFCYGqSEJAbqoe8wNfh9a5eb10PcaH6gATzJwS/exec';
 const params = new URLSearchParams(location.search);
 const DESPACHO_ID = params.get('id') || 'D-1';
 const ROW_INDEX = parseInt(params.get('row')) || 2;
@@ -356,14 +356,14 @@ function previewFoto(inputId,prevId,okId){
 
 function borrarFoto(inputId,prevId,okId){document.getElementById(inputId).value='';document.getElementById(prevId).innerHTML='';document.getElementById(okId).style.display='none';fotosCargadas[inputId.replace('file-','')]=null;}
 
-async function subirFotoAPI(key){
+async function subirFotoAPI(key,meta={}){
   const f=fotosCargadas[key];if(!f)return null;
-  try{const r=await apiPost({action:'subirFoto',base64:f.base64,nombre:f.nombre,mimeType:f.mimeType});return r.url||null;}catch{return null;}
+  try{const r=await apiPost({action:'subirFoto',base64:f.base64,nombre:f.nombre,mimeType:f.mimeType,protocolo:despacho?despacho.protocolo:'',placa:despacho?despacho.placa:'',fecha:despacho?despacho.fecha:'',...meta});return r.url||null;}catch{return null;}
 }
 
 async function confirmarCargue(){
   const btn=event.target;btn.disabled=true;btn.textContent='Guardando...';
-  const fotoUrl=await subirFotoAPI('cargue');
+  const fotoUrl=await subirFotoAPI('cargue',{tipo:'cargue'});
   await apiPost({action:'registrarCargue',rowIndex:despacho.rowIndex,muelle:document.getElementById('t-muelle').value,pallet:document.getElementById('t-pallet').value,observaciones:document.getElementById('obs-cargue').value,fotoUrl,protocolo:despacho.protocolo,placa:despacho.placa});
   toast('Cargue confirmado. ¡Buen viaje!');
   document.getElementById('step-cargue').classList.replace('active','done');
@@ -375,7 +375,7 @@ async function confirmarCargue(){
 async function guardarTienda(){
   if(!tiendaActual)return;
   const btn=event.target;btn.disabled=true;btn.textContent='Guardando...';
-  const fotoEtiqueta=await subirFotoAPI('tienda');
+  const fotoEtiqueta=await subirFotoAPI('tienda',{tipo:'etiqueta',tienda:tiendaActual?tiendaActual.numero:''});
   await apiPost({action:'registrarTienda',rowIndex:despacho.rowIndex,numeroTienda:tiendaActual.numero,horaLlegada:document.getElementById('tf-llegada').value,horaInicioDesc:document.getElementById('tf-inicio-desc').value,horaFinDesc:document.getElementById('tf-fin-desc').value,observacion:document.getElementById('tf-obs').value,fotoEtiqueta,protocolo:despacho.protocolo,placa:despacho.placa});
   tiendaActual.horaLlegada=document.getElementById('tf-llegada').value;
   tiendaActual.horaInicioDesc=document.getElementById('tf-inicio-desc').value;
@@ -402,7 +402,7 @@ async function enviarNovedadCargue(){
   const valores={'PALLET EN RESERVA':parseInt(document.getElementById('nc-pallet-res').value)||0,'ESTIBAS NO LOCALIZADAS':parseInt(document.getElementById('nc-estibas').value)||0,'PALLET SIN VINIPEL':parseInt(document.getElementById('nc-sin-vinipel').value)||0,'PALLET MAL CONFORMADAS':parseInt(document.getElementById('nc-mal-conf').value)||0,'PALLET POR REMONTES':parseInt(document.getElementById('nc-remontes').value)||0,'CONTENEDORES':parseInt(document.getElementById('nc-contenedores').value)||0};
   const hayValores=Object.values(valores).some(v=>v>0);
   if(!hayValores){toast('Ingresa al menos una cantidad mayor a 0');btn.disabled=false;btn.textContent='Registrar novedades de cargue';return;}
-  const fotoUrl=await subirFotoAPI('nov-cargue');
+  const fotoUrl=await subirFotoAPI('nov-cargue',{tipo:'novedad_cargue'});
   await apiPost({action:'registrarNovedadCargue',rowIndex:despacho.rowIndex,protocolo:despacho.protocolo,placa:despacho.placa,conductor:despacho.conductor,fecha:despacho.fecha,dia:despacho.dia,turno:despacho.turno,valores,fotoUrl});
   toast('Novedades de cargue registradas');
   ['nc-pallet-res','nc-estibas','nc-sin-vinipel','nc-mal-conf','nc-remontes','nc-contenedores'].forEach(id=>{document.getElementById(id).value=0;});
@@ -414,7 +414,7 @@ async function enviarNovedadRuta(){
   const desc=document.getElementById('nov-desc').value.trim();
   if(!desc){toast('Escribe una descripción');return;}
   const btn=event.target;btn.disabled=true;btn.textContent='Enviando...';
-  const fotoUrl=await subirFotoAPI('novedad');
+  const fotoUrl=await subirFotoAPI('novedad',{tipo:'novedad_ruta'});
   await apiPost({action:'registrarNovedad',rowIndex:despacho.rowIndex,tipo:novTipo,descripcion:desc,tiendaAfectada:document.getElementById('nov-tienda').value,fotoUrl,protocolo:despacho.protocolo,placa:despacho.placa,conductor:despacho.conductor});
   toast('Novedad enviada — Telegram notificado');
   document.getElementById('nov-desc').value='';
@@ -425,7 +425,7 @@ async function enviarNovedadRuta(){
 async function confirmarRetorno(){
   if(!fotosCargadas['protocolo']){toast('Debes tomar la foto del documento de protocolo');return;}
   const btn=document.getElementById('btn-retorno');btn.disabled=true;btn.textContent='Completando...';
-  const fotoProtocolo=await subirFotoAPI('protocolo');
+  const fotoProtocolo=await subirFotoAPI('protocolo',{tipo:'protocolo_cierre'});
   await apiPost({action:'registrarRetorno',rowIndex:despacho.rowIndex,horaRetorno:document.getElementById('t-retorno').value,observaciones:document.getElementById('obs-retorno').value,fotoProtocolo,protocolo:despacho.protocolo,placa:despacho.placa,conductor:despacho.conductor});
   toast('¡Despacho completado!');btn.textContent='¡Despacho completado!';
 }

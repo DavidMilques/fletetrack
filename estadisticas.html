@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>TrasladarR3 — Estadísticas</title>
+<title>FleteTrack — Estadísticas</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;--green:#1D9E75;--green-l:#E1F5EE;--green-t:#085041;--amber:#BA7517;--amber-l:#FAEEDA;--amber-t:#633806;--red:#E24B4A;--red-l:#FCEBEB;--red-t:#791F1F;--gray:#5F5E5A;--gray-l:#F1EFE8;--gray-t:#2C2C2A;--border:#e0ddd6;--bg:#f8f7f4;--r:10px;--rs:6px}
@@ -81,6 +81,16 @@ tr:hover td{background:var(--bg)}
 .imp-alto{background:var(--red-l);color:var(--red-t);font-weight:600}
 .imp-medio{background:var(--amber-l);color:var(--amber-t);font-weight:600}
 .imp-bajo{background:var(--green-l);color:var(--green-t);font-weight:600}
+
+.rank-veh{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.rank-veh:last-child{border-bottom:none}
+.rank-placa{font-size:14px;font-weight:700;min-width:80px}
+.rank-km-bar{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.rank-km-fill{height:100%;border-radius:4px;transition:width .4s}
+.rank-km-val{font-size:13px;font-weight:600;min-width:60px;text-align:right}
+.semaforo{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+.sem-ok{background:var(--green)}.sem-warn{background:var(--amber)}.sem-bad{background:var(--red)}
+
 .loading{text-align:center;padding:30px;color:var(--gray);font-size:13px}
 .spinner{width:26px;height:26px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 8px}
 .empty{text-align:center;padding:20px;color:var(--gray);font-size:12px}
@@ -91,8 +101,8 @@ tr:hover td{background:var(--bg)}
 </head>
 <body>
 <script>
-const API_URL  = 'https://script.google.com/macros/s/AKfycbxlAsogbBDxART-j8Va4LUnrnGWWNx6_PmBUUCx4kJK9qFbHFKTZifkc9Yu15Jd4lTG/exec';
-const DASH_URL = 'https://davidmilques.github.io/TRASLADARR3/dashboard.html';
+const API_URL  = 'https://script.google.com/macros/s/AKfycbw7L5rVei3L0yJp-TPXrVCGE1km6QcFCYGqSEJAbqoe8wNfh9a5eb10PcaH6gATzJwS/exec';
+const DASH_URL = 'https://davidmilques.github.io/TRASLADARR3/dashboard_v2.html';
 const INF_URL  = 'https://davidmilques.github.io/TRASLADARR3/informes.html';
 const CATS_NOV = ['PALLET EN RESERVA','ESTIBAS NO LOCALIZADAS','PALLET SIN VINIPEL','PALLET MAL CONFORMADAS','PALLET POR REMONTES','CONTENEDORES'];
 const OBJ_KEY  = 'fletetrack_objetivos';
@@ -128,6 +138,8 @@ let stats = null; let dispData = null; let charts = {};
   <button class="tab-btn" onclick="showTab('conductores',this)">Conductores</button>
   <button class="tab-btn" onclick="showTab('vehiculos',this)">Vehículos</button>
   <button class="tab-btn" onclick="showTab('disponibilidad',this)">Disponibilidad km</button>
+  <button class="tab-btn" onclick="showTab('ranking',this)">Ranking vehículos</button>
+  <button class="tab-btn" onclick="showTab('adherencia',this)">Adherencia tiempos</button>
 </div>
 
 <div class="content">
@@ -236,6 +248,46 @@ let stats = null; let dispData = null; let charts = {};
   </div>
 </div>
 
+<!-- RANKING VEHÍCULOS QUEDADOS -->
+<div id="tab-ranking" class="tab-pane">
+  <div id="load-ranking" class="loading"><div class="spinner"></div>Cargando...</div>
+  <div id="cont-ranking" style="display:none">
+    <div class="card">
+      <div class="card-title">Vehículos con menos km — prioridad para próximo viaje <span class="card-sub">Ordenado de menor a mayor km acumulado</span></div>
+      <div id="ranking-vehs"></div>
+    </div>
+    <div class="card" style="margin-top:0">
+      <div class="card-title">Tabla comparativa vs objetivo km/veh-día</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Placa</th><th>Km acumulados</th><th>Objetivo período</th><th>Diferencia</th><th>Estado</th><th>Recomendación</th></tr></thead>
+        <tbody id="ranking-tbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADHERENCIA A TIEMPOS -->
+<div id="tab-adherencia" class="tab-pane">
+  <div id="load-adh" class="loading"><div class="spinner"></div>Cargando...</div>
+  <div id="cont-adh" style="display:none">
+    <div class="sum-grid" id="adh-sum"></div>
+    <div class="card">
+      <div class="card-title">Adherencia por conductor <span class="card-sub">Tiempo real vs esperado (5 min × pallets)</span></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Conductor</th><th>Registros</th><th>Tiempo esperado total</th><th>Tiempo real total</th><th>Diferencia</th><th>% Adherencia</th><th>En tiempo</th><th>Leve (+15min)</th><th>Excedido</th></tr></thead>
+        <tbody id="adh-cond-tbody"></tbody>
+      </table></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:12px 16px;font-size:13px;font-weight:600;color:var(--gray-t)">Detalle por tienda</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Fecha</th><th>Protocolo</th><th>Conductor</th><th>Tienda</th><th>Pallets</th><th>Esperado (min)</th><th>Real (min)</th><th>Diferencia</th><th>Estado</th></tr></thead>
+        <tbody id="adh-det-tbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
 </div>
 <div class="toast" id="toast"></div>
 
@@ -273,13 +325,13 @@ async function cargar() {
     stats = demoStats(); dispData = demoDisp();
     toast('Modo demo — configura API_URL');
   }
-  renderResumen(); renderNovedades(); renderConductores(); renderVehiculos(); renderDisponibilidad();
+  renderResumen(); renderNovedades(); renderConductores(); renderVehiculos(); renderDisponibilidad(); renderRanking(); renderAdherencia();
   document.getElementById('last-upd').textContent = new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
   document.getElementById('ref-icon').classList.remove('spinning');
 }
 
 function showAll(type) {
-  ['res','nov','cond','veh','disp'].forEach(id => {
+  ['res','nov','cond','veh','disp','ranking','adh'].forEach(id => {
     const l=document.getElementById(`load-${id}`); const c=document.getElementById(`cont-${id}`);
     if(type==='loading'){if(l)l.style.display='block';if(c)c.style.display='none';}
     else{if(l)l.style.display='none';if(c)c.style.display='block';}
@@ -494,7 +546,132 @@ function showTab(name,btn) {
 function destroyChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 
-function demoStats(){return{resumen:{total:24,completados:16,novedades:3,enRuta:4,pctCumplimiento:87,promTiempoCedi:160,totalTiendas:96,tiendasOk:83,totalKm:4639,totalPeajes:180000,totalPallet:503,vehiculosOperativos:24,frecuencia:2.25,kmVehDia:193},porConductor:[{nombre:'Pedro Ramírez',total:8,completados:6,novedades:1,tiendas:32,tiendasOk:29,km:1200},{nombre:'Luis Perdomo',total:7,completados:5,novedades:2,tiendas:28,tiendasOk:23,km:980},{nombre:'Carlos Muñoz',total:5,completados:4,novedades:0,tiendas:20,tiendasOk:20,km:750},{nombre:'Jorge Torres',total:4,completados:1,novedades:0,tiendas:16,tiendasOk:11,km:709}],porVehiculo:[{placa:'ABC-123',placaBackup:'XYZ-001',viajes:7,km:1134,peajes:42000,pallet:148,tiendas:28,novedades:1},{placa:'XYZ-456',placaBackup:'—',viajes:6,km:980,peajes:36000,pallet:126,tiendas:24,novedades:2},{placa:'DEF-789',placaBackup:'—',viajes:6,km:910,peajes:34000,pallet:120,tiendas:22,novedades:0},{placa:'GHI-321',placaBackup:'JKL-999',viajes:5,km:615,peajes:28000,pallet:109,tiendas:22,novedades:0}],porTurno:[{turno:'Diurno',total:18},{turno:'Nocturno',total:6}],novedadesCargue:[{nombre:'PALLET EN RESERVA',total:14},{nombre:'PALLET MAL CONFORMADAS',total:9},{nombre:'PALLET SIN VINIPEL',total:7},{nombre:'PALLET POR REMONTES',total:5},{nombre:'ESTIBAS NO LOCALIZADAS',total:3},{nombre:'CONTENEDORES',total:2}],novedadesCargueDetalle:[{fecha:'10/04/2026',protocolo:'P-2041',placa:'ABC-123',conductor:'Pedro Ramírez',turno:'Diurno','PALLET EN RESERVA':3,'ESTIBAS NO LOCALIZADAS':1,'PALLET SIN VINIPEL':2,'PALLET MAL CONFORMADAS':0,'PALLET POR REMONTES':1,'CONTENEDORES':0},{fecha:'10/04/2026',protocolo:'P-2042',placa:'XYZ-456',conductor:'Luis Perdomo',turno:'Nocturno','PALLET EN RESERVA':2,'ESTIBAS NO LOCALIZADAS':0,'PALLET SIN VINIPEL':1,'PALLET MAL CONFORMADAS':3,'PALLET POR REMONTES':2,'CONTENEDORES':1},{fecha:'10/04/2026',protocolo:'P-2043',placa:'DEF-789',conductor:'Carlos Muñoz',turno:'Diurno','PALLET EN RESERVA':4,'ESTIBAS NO LOCALIZADAS':1,'PALLET SIN VINIPEL':0,'PALLET MAL CONFORMADAS':2,'PALLET POR REMONTES':1,'CONTENEDORES':0}],novedadesPorTurno:{Diurno:{'PALLET EN RESERVA':7,'ESTIBAS NO LOCALIZADAS':2,'PALLET SIN VINIPEL':2,'PALLET MAL CONFORMADAS':2,'PALLET POR REMONTES':2,'CONTENEDORES':0},Nocturno:{'PALLET EN RESERVA':7,'ESTIBAS NO LOCALIZADAS':1,'PALLET SIN VINIPEL':5,'PALLET MAL CONFORMADAS':7,'PALLET POR REMONTES':3,'CONTENEDORES':2}}};}
+
+// ---- RANKING VEHÍCULOS ----
+function renderRanking() {
+  const vehs = (stats.porVehiculo||[]).sort((a,b) => a.km - b.km);
+  const objKmVeh = objetivos.kmVeh || 1;
+  const dias = (() => {
+    const d1 = document.getElementById('f-desde').value;
+    const d2 = document.getElementById('f-hasta').value;
+    const fecha = document.getElementById('f-fecha').value;
+    if (fecha) return 1;
+    if (d1 && d2) {
+      const diff = (new Date(d2) - new Date(d1)) / 86400000;
+      return Math.max(1, Math.round(diff) + 1);
+    }
+    return 1;
+  })();
+  const maxKm = vehs.length ? Math.max(...vehs.map(v=>v.km), 1) : 1;
+  const objTotal = objKmVeh * dias;
+
+  document.getElementById('ranking-vehs').innerHTML = vehs.length
+    ? vehs.map((v, i) => {
+        const pct = Math.round(v.km / maxKm * 100);
+        const color = v.km < objTotal * 0.7 ? 'var(--red)' : v.km < objTotal ? 'var(--amber)' : 'var(--green)';
+        return `<div class="rank-veh">
+          <div style="width:22px;height:22px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;flex-shrink:0">${i+1}</div>
+          <div class="rank-placa">${v.placa}</div>
+          <div style="flex:1">
+            <div class="rank-km-bar"><div class="rank-km-fill" style="width:${pct}%;background:${color}"></div></div>
+            <div style="font-size:10px;color:var(--gray);margin-top:2px">${v.viajes} viaje${v.viajes!==1?'s':''}</div>
+          </div>
+          <div class="rank-km-val" style="color:${color}">${Math.round(v.km).toLocaleString('es-CO')} km</div>
+        </div>`;
+      }).join('')
+    : '<div class="empty">Sin datos</div>';
+
+  document.getElementById('ranking-tbody').innerHTML = vehs.length
+    ? vehs.map(v => {
+        const dif = Math.round(v.km - objTotal);
+        const pct = objTotal > 0 ? Math.round(v.km/objTotal*100) : 0;
+        const semCls = v.km >= objTotal ? 'sem-ok' : v.km >= objTotal*0.7 ? 'sem-warn' : 'sem-bad';
+        const bCls = v.km >= objTotal ? 'b-ok' : v.km >= objTotal*0.7 ? 'b-warn' : 'b-bad';
+        const rec = v.km < objTotal*0.7 ? '⬆ Priorizar en próximo viaje' : v.km < objTotal ? 'Disponible' : 'Km cubiertos';
+        return `<tr>
+          <td style="font-weight:700"><span class="semaforo ${semCls}"></span>${v.placa}</td>
+          <td style="font-weight:600">${Math.round(v.km).toLocaleString('es-CO')}</td>
+          <td>${Math.round(objTotal).toLocaleString('es-CO')}</td>
+          <td style="color:${dif<0?'var(--red-t)':'var(--green-t)'};font-weight:600">${dif>=0?'+':''}${dif.toLocaleString('es-CO')}</td>
+          <td><span class="badge ${bCls}">${pct}%</span></td>
+          <td style="font-size:11px;color:${v.km<objTotal*0.7?'var(--red-t)':'var(--gray-t)'}">${rec}</td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="6" class="empty">Sin datos</td></tr>';
+
+  document.getElementById('load-ranking').style.display='none';
+  document.getElementById('cont-ranking').style.display='block';
+}
+
+// ---- ADHERENCIA ----
+function renderAdherencia() {
+  const adh = stats.adherencia || [];
+  const adhCond = stats.adherenciaConductor || [];
+
+  // Resumen
+  const totalReg = adh.length;
+  const ok = adh.filter(a=>a.estado==='ok').length;
+  const leve = adh.filter(a=>a.estado==='leve').length;
+  const excedido = adh.filter(a=>a.estado==='excedido').length;
+  const pctAdh = totalReg > 0 ? Math.round(ok/totalReg*100) : 0;
+  const promDif = totalReg > 0 ? Math.round(adh.reduce((s,a)=>s+a.diferencia,0)/totalReg) : 0;
+
+  document.getElementById('adh-sum').innerHTML = `
+    <div class="scard"><div class="sval">${totalReg}</div><div class="slbl">Tiendas medidas</div></div>
+    <div class="scard"><div class="sval" style="color:var(--green)">${ok}</div><div class="slbl">En tiempo</div></div>
+    <div class="scard"><div class="sval" style="color:var(--amber)">${leve}</div><div class="slbl">Leve (+15 min)</div></div>
+    <div class="scard"><div class="sval" style="color:var(--red)">${excedido}</div><div class="slbl">Excedido</div></div>
+    <div class="scard"><div class="sval" style="color:${pctAdh>=80?'var(--green)':pctAdh>=60?'var(--amber)':'var(--red)'}">${pctAdh}%</div><div class="slbl">% adherencia</div></div>
+    <div class="scard"><div class="sval" style="color:${promDif<=0?'var(--green)':promDif<=15?'var(--amber)':'var(--red)'}">${promDif>=0?'+':''}${promDif} min</div><div class="slbl">Desviación promedio</div></div>`;
+
+  // Tabla por conductor
+  document.getElementById('adh-cond-tbody').innerHTML = adhCond.length
+    ? adhCond.sort((a,b)=>{
+        const pa=a.registros>0?Math.round(a.sumReal/a.sumEsperado*100):0;
+        const pb=b.registros>0?Math.round(b.sumReal/b.sumEsperado*100):0;
+        return pa-pb;
+      }).map(c => {
+        const pct = c.sumEsperado>0 ? Math.round(c.sumReal/c.sumEsperado*100) : 0;
+        const dif = c.sumReal - c.sumEsperado;
+        const bCls = pct<=110?'b-ok':pct<=130?'b-warn':'b-bad';
+        return `<tr>
+          <td style="font-weight:500">${c.nombre}</td>
+          <td>${c.registros}</td>
+          <td>${c.sumEsperado} min</td>
+          <td>${c.sumReal} min</td>
+          <td style="font-weight:600;color:${dif<=0?'var(--green-t)':'var(--red-t)'}">${dif>=0?'+':''}${dif} min</td>
+          <td><span class="badge ${bCls}">${pct}%</span></td>
+          <td style="color:var(--green-t)">${c.ok}</td>
+          <td style="color:var(--amber-t)">${c.leve}</td>
+          <td style="color:var(--red-t)">${c.excedido}</td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="9" class="empty">Sin datos — registra hora llegada y salida en tiendas</td></tr>';
+
+  // Tabla detalle
+  document.getElementById('adh-det-tbody').innerHTML = adh.length
+    ? adh.map(a => {
+        const esCls = a.estado==='ok'?'b-ok':a.estado==='leve'?'b-warn':'b-bad';
+        const esLbl = a.estado==='ok'?'En tiempo':a.estado==='leve'?'Leve':'+Excedido';
+        return `<tr>
+          <td>${a.fecha}</td>
+          <td style="color:var(--blue);font-weight:500">${a.protocolo}</td>
+          <td>${a.conductor}</td>
+          <td>${a.tienda}</td>
+          <td style="text-align:center">${a.pallets}</td>
+          <td style="text-align:center">${a.tiempoEsperado} min</td>
+          <td style="text-align:center;font-weight:600">${a.tiempoReal} min</td>
+          <td style="text-align:center;font-weight:600;color:${a.diferencia<=0?'var(--green-t)':'var(--red-t)'}">${a.diferencia>=0?'+':''}${a.diferencia} min</td>
+          <td><span class="badge ${esCls}">${esLbl}</span></td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="9" class="empty">Sin datos — el conductor debe registrar hora llegada y salida en tiendas</td></tr>';
+
+  document.getElementById('load-adh').style.display='none';
+  document.getElementById('cont-adh').style.display='block';
+}
+
+function demoStats(){const demoAdh=[{fecha:'10/04/2026',protocolo:'P-2041',placa:'ABC-123',conductor:'Pedro Ramírez',turno:'Diurno',tienda:'Supermercado La 14',numeroTienda:1,pallets:12,tiempoEsperado:60,tiempoReal:55,diferencia:-5,pctAdherencia:92,estado:'ok'},{fecha:'10/04/2026',protocolo:'P-2041',placa:'ABC-123',conductor:'Pedro Ramírez',turno:'Diurno',tienda:'Tienda Comunal Norte',numeroTienda:2,pallets:12,tiempoEsperado:60,tiempoReal:78,diferencia:18,pctAdherencia:130,estado:'excedido'},{fecha:'10/04/2026',protocolo:'P-2042',placa:'XYZ-456',conductor:'Luis Perdomo',turno:'Nocturno',tienda:'Almacén del Valle',numeroTienda:1,pallets:8,tiempoEsperado:40,tiempoReal:42,diferencia:2,pctAdherencia:105,estado:'ok'},{fecha:'10/04/2026',protocolo:'P-2043',placa:'DEF-789',conductor:'Carlos Muñoz',turno:'Diurno',tienda:'Supermercado Norte',numeroTienda:1,pallets:10,tiempoEsperado:50,tiempoReal:65,diferencia:15,pctAdherencia:130,estado:'leve'}];const demoAdhCond=[{nombre:'Pedro Ramírez',registros:2,sumReal:133,sumEsperado:120,ok:1,leve:0,excedido:1},{nombre:'Luis Perdomo',registros:1,sumReal:42,sumEsperado:40,ok:1,leve:0,excedido:0},{nombre:'Carlos Muñoz',registros:1,sumReal:65,sumEsperado:50,ok:0,leve:1,excedido:0}];return{resumen:{total:24,completados:16,novedades:3,enRuta:4,pctCumplimiento:87,promTiempoCedi:160,totalTiendas:96,tiendasOk:83,totalKm:4639,totalPeajes:180000,totalPallet:503,vehiculosOperativos:24,frecuencia:2.25,kmVehDia:193},porConductor:[{nombre:'Pedro Ramírez',total:8,completados:6,novedades:1,tiendas:32,tiendasOk:29,km:1200},{nombre:'Luis Perdomo',total:7,completados:5,novedades:2,tiendas:28,tiendasOk:23,km:980},{nombre:'Carlos Muñoz',total:5,completados:4,novedades:0,tiendas:20,tiendasOk:20,km:750},{nombre:'Jorge Torres',total:4,completados:1,novedades:0,tiendas:16,tiendasOk:11,km:709}],porVehiculo:[{placa:'ABC-123',placaBackup:'XYZ-001',viajes:7,km:1134,peajes:42000,pallet:148,tiendas:28,novedades:1},{placa:'XYZ-456',placaBackup:'—',viajes:6,km:980,peajes:36000,pallet:126,tiendas:24,novedades:2},{placa:'DEF-789',placaBackup:'—',viajes:6,km:910,peajes:34000,pallet:120,tiendas:22,novedades:0},{placa:'GHI-321',placaBackup:'JKL-999',viajes:5,km:615,peajes:28000,pallet:109,tiendas:22,novedades:0}],porTurno:[{turno:'Diurno',total:18},{turno:'Nocturno',total:6}],novedadesCargue:[{nombre:'PALLET EN RESERVA',total:14},{nombre:'PALLET MAL CONFORMADAS',total:9},{nombre:'PALLET SIN VINIPEL',total:7},{nombre:'PALLET POR REMONTES',total:5},{nombre:'ESTIBAS NO LOCALIZADAS',total:3},{nombre:'CONTENEDORES',total:2}],novedadesCargueDetalle:[{fecha:'10/04/2026',protocolo:'P-2041',placa:'ABC-123',conductor:'Pedro Ramírez',turno:'Diurno','PALLET EN RESERVA':3,'ESTIBAS NO LOCALIZADAS':1,'PALLET SIN VINIPEL':2,'PALLET MAL CONFORMADAS':0,'PALLET POR REMONTES':1,'CONTENEDORES':0},{fecha:'10/04/2026',protocolo:'P-2042',placa:'XYZ-456',conductor:'Luis Perdomo',turno:'Nocturno','PALLET EN RESERVA':2,'ESTIBAS NO LOCALIZADAS':0,'PALLET SIN VINIPEL':1,'PALLET MAL CONFORMADAS':3,'PALLET POR REMONTES':2,'CONTENEDORES':1},{fecha:'10/04/2026',protocolo:'P-2043',placa:'DEF-789',conductor:'Carlos Muñoz',turno:'Diurno','PALLET EN RESERVA':4,'ESTIBAS NO LOCALIZADAS':1,'PALLET SIN VINIPEL':0,'PALLET MAL CONFORMADAS':2,'PALLET POR REMONTES':1,'CONTENEDORES':0}],adherencia:demoAdh,adherenciaConductor:demoAdhCond,novedadesPorTurno:{Diurno:{'PALLET EN RESERVA':7,'ESTIBAS NO LOCALIZADAS':2,'PALLET SIN VINIPEL':2,'PALLET MAL CONFORMADAS':2,'PALLET POR REMONTES':2,'CONTENEDORES':0},Nocturno:{'PALLET EN RESERVA':7,'ESTIBAS NO LOCALIZADAS':1,'PALLET SIN VINIPEL':5,'PALLET MAL CONFORMADAS':7,'PALLET POR REMONTES':3,'CONTENEDORES':2}}};}
 function demoDisp(){return{fechas:['08/04/2026','09/04/2026','10/04/2026','11/04/2026'],tabla:[{placa:'ABC-123',dias:{'08/04/2026':142,'09/04/2026':138,'10/04/2026':0,'11/04/2026':155}},{placa:'XYZ-456',dias:{'08/04/2026':98,'09/04/2026':102,'10/04/2026':95,'11/04/2026':0}},{placa:'DEF-789',dias:{'08/04/2026':115,'09/04/2026':0,'10/04/2026':118,'11/04/2026':112}},{placa:'GHI-321',dias:{'08/04/2026':88,'09/04/2026':92,'10/04/2026':85,'11/04/2026':90}}]};}
 </script>
 </body>

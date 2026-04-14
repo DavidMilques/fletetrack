@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#185FA5">
-<title>Trasladar R3 — Dashboard</title>
+<title>FleteTrack — Dashboard</title>
 <style>
 :root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;--green:#1D9E75;--green-l:#E1F5EE;--green-t:#085041;--amber:#BA7517;--amber-l:#FAEEDA;--amber-t:#633806;--red:#E24B4A;--red-l:#FCEBEB;--red-t:#791F1F;--gray:#5F5E5A;--gray-l:#F1EFE8;--gray-t:#2C2C2A;--border:#e0ddd6;--bg:#f8f7f4;--r:10px;--rs:6px}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
@@ -91,11 +91,11 @@ body{background:var(--bg);color:#1a1a18;min-height:100vh}
 </head>
 <body>
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbxlAsogbBDxART-j8Va4LUnrnGWWNx6_PmBUUCx4kJK9qFbHFKTZifkc9Yu15Jd4lTG/exec';
-const BASE_URL = 'https://davidmilques.github.io/TRASLADARR3/conductor.html';
+const API_URL = 'https://script.google.com/macros/s/AKfycbw7L5rVei3L0yJp-TPXrVCGE1km6QcFCYGqSEJAbqoe8wNfh9a5eb10PcaH6gATzJwS/exec';
+const BASE_URL = 'https://davidmilques.github.io/TRASLADARR3/conductor_v2.html';
 const STATS_URL = 'https://davidmilques.github.io/TRASLADARR3/estadisticas.html';
 const INFORMES_URL = 'https://davidmilques.github.io/TRASLADARR3/informes.html';
-let todos=[], filtrados=[], selIdx=0;
+let todos=[], filtrados=[], selIdx=0, selId=null;
 let filtroFecha='', filtroEstado='', filtroConductor='', filtroPlaca='';
 </script>
 
@@ -202,8 +202,13 @@ function aplicarFiltros(){
   });
   const txt=filtrados.length===todos.length?`${todos.length} despachos`:`${filtrados.length} de ${todos.length}`;
   document.getElementById('f-count').textContent=txt;
-  selIdx=0;renderSidebar();
-  if(filtrados.length>0)renderDetalle(0);
+  // Restaurar selección previa por id
+  if(selId){
+    const prev=filtrados.findIndex(d=>d.id===selId);
+    selIdx=prev>=0?prev:0;
+  }else{selIdx=0;}
+  renderSidebar();
+  if(filtrados.length>0)renderDetalle(selIdx);
   else document.getElementById('main-content').innerHTML='<div class="empty">Sin despachos para estos filtros</div>';
 }
 
@@ -232,7 +237,7 @@ function renderSidebar(){
     </div>`).join('');
 }
 
-function selDespacho(i){selIdx=i;renderSidebar();renderDetalle(i);}
+function selDespacho(i){selIdx=i;selId=filtrados[i]?filtrados[i].id:null;renderSidebar();renderDetalle(i);}
 
 function renderDetalle(i){
   const d=filtrados[i];
