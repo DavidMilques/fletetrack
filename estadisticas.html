@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FleteTrack — Estadísticas</title>
+<title>TRASLADARR3 — Estadísticas</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;--green:#1D9E75;--green-l:#E1F5EE;--green-t:#085041;--amber:#BA7517;--amber-l:#FAEEDA;--amber-t:#633806;--red:#E24B4A;--red-l:#FCEBEB;--red-t:#791F1F;--gray:#5F5E5A;--gray-l:#F1EFE8;--gray-t:#2C2C2A;--border:#e0ddd6;--bg:#f8f7f4;--r:10px;--rs:6px}
@@ -101,8 +101,8 @@ tr:hover td{background:var(--bg)}
 </head>
 <body>
 <script>
-const API_URL  = 'https://script.google.com/macros/s/AKfycbw7L5rVei3L0yJp-TPXrVCGE1km6QcFCYGqSEJAbqoe8wNfh9a5eb10PcaH6gATzJwS/exec';
-const DASH_URL = 'https://davidmilques.github.io/TRASLADARR3/dashboard_v2.html';
+const API_URL  = 'https://script.google.com/macros/s/AKfycbxagjvEewbUzjG4jdVtSZJv-xiQ6ozs2o2zMxH5y5g1gh4rqJfRRC6eAq1aHXNwTiMG/exec';
+const DASH_URL = 'https://davidmilques.github.io/TRASLADARR3/dashboard.html';
 const INF_URL  = 'https://davidmilques.github.io/TRASLADARR3/informes.html';
 const CATS_NOV = ['PALLET EN RESERVA','ESTIBAS NO LOCALIZADAS','PALLET SIN VINIPEL','PALLET MAL CONFORMADAS','PALLET POR REMONTES','CONTENEDORES'];
 const OBJ_KEY  = 'fletetrack_objetivos';
@@ -111,7 +111,7 @@ let stats = null; let dispData = null; let charts = {};
 </script>
 
 <div class="topbar">
-  <h1>FleteTrack — Estadísticas</h1>
+  <h1>TRASLADARR3 — Estadísticas</h1>
   <div class="topbar-right">
     <a class="nav-link" id="link-dash">Dashboard</a>
     <a class="nav-link" id="link-inf">Informes</a>
@@ -270,20 +270,48 @@ let stats = null; let dispData = null; let charts = {};
 <div id="tab-adherencia" class="tab-pane">
   <div id="load-adh" class="loading"><div class="spinner"></div>Cargando...</div>
   <div id="cont-adh" style="display:none">
-    <div class="sum-grid" id="adh-sum"></div>
-    <div class="card">
-      <div class="card-title">Adherencia por conductor <span class="card-sub">Tiempo real vs esperado (5 min × pallets)</span></div>
-      <div class="tbl-wrap"><table>
-        <thead><tr><th>Conductor</th><th>Registros</th><th>Tiempo esperado total</th><th>Tiempo real total</th><th>Diferencia</th><th>% Adherencia</th><th>En tiempo</th><th>Leve (+15min)</th><th>Excedido</th></tr></thead>
-        <tbody id="adh-cond-tbody"></tbody>
-      </table></div>
+    <!-- Sub-tabs -->
+    <div style="display:flex;border-bottom:1px solid var(--border);margin-bottom:12px;background:white">
+      <button class="tab-btn sel" id="adh-tab-tienda" onclick="showAdhTab('tienda',this)" style="font-size:11px">En tienda (pallets)</button>
+      <button class="tab-btn" id="adh-tab-ruta" onclick="showAdhTab('ruta',this)" style="font-size:11px">En ruta (tramos)</button>
     </div>
-    <div class="card" style="padding:0;overflow:hidden">
-      <div style="padding:12px 16px;font-size:13px;font-weight:600;color:var(--gray-t)">Detalle por tienda</div>
-      <div class="tbl-wrap"><table>
-        <thead><tr><th>Fecha</th><th>Protocolo</th><th>Conductor</th><th>Tienda</th><th>Pallets</th><th>Esperado (min)</th><th>Real (min)</th><th>Diferencia</th><th>Estado</th></tr></thead>
-        <tbody id="adh-det-tbody"></tbody>
-      </table></div>
+
+    <!-- ADHERENCIA EN TIENDA -->
+    <div id="adh-pane-tienda">
+      <div class="sum-grid" id="adh-sum"></div>
+      <div class="card">
+        <div class="card-title">Por conductor <span class="card-sub">5 min × pallets del viaje</span></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Conductor</th><th>Registros</th><th>Esperado total</th><th>Real total</th><th>Diferencia</th><th>% Adherencia</th><th>En tiempo</th><th>Leve</th><th>Excedido</th></tr></thead>
+          <tbody id="adh-cond-tbody"></tbody>
+        </table></div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:12px 16px;font-size:13px;font-weight:600;color:var(--gray-t)">Detalle por tienda</div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Fecha</th><th>Protocolo</th><th>Conductor</th><th>Tienda</th><th>Pallets</th><th>Esperado (min)</th><th>Real (min)</th><th>Diferencia</th><th>Estado</th></tr></thead>
+          <tbody id="adh-det-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- ADHERENCIA EN RUTA -->
+    <div id="adh-pane-ruta" style="display:none">
+      <div class="card">
+        <div class="card-title">
+          Adherencia en ruta por tramos
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:400;color:var(--gray)">
+            Vel. base:
+            <input type="number" id="vel-base" value="40" min="10" max="120" style="width:55px;padding:3px 6px;border:1px solid var(--border);border-radius:4px;font-size:11px;text-align:center" onchange="renderAdherencia()">
+            km/h
+          </div>
+        </div>
+        <div class="sum-grid" id="adh-ruta-sum" style="margin-bottom:12px"></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Fecha</th><th>Protocolo</th><th>Conductor</th><th>Tramo</th><th>Km</th><th>Esperado (min)</th><th>Real (min)</th><th>Diferencia</th><th>Estado</th></tr></thead>
+          <tbody id="adh-ruta-tbody"></tbody>
+        </table></div>
+      </div>
     </div>
   </div>
 </div>
@@ -603,6 +631,13 @@ function renderRanking() {
   document.getElementById('cont-ranking').style.display='block';
 }
 
+function showAdhTab(tab, btn) {
+  document.getElementById('adh-pane-tienda').style.display = tab==='tienda'?'block':'none';
+  document.getElementById('adh-pane-ruta').style.display   = tab==='ruta'?'block':'none';
+  document.querySelectorAll('#cont-adh .tab-btn').forEach(b=>b.classList.remove('sel'));
+  if(btn)btn.classList.add('sel');
+}
+
 // ---- ADHERENCIA ----
 function renderAdherencia() {
   const adh = stats.adherencia || [];
@@ -666,6 +701,38 @@ function renderAdherencia() {
         </tr>`;
       }).join('')
     : '<tr><td colspan="9" class="empty">Sin datos — el conductor debe registrar hora llegada y salida en tiendas</td></tr>';
+
+  // Adherencia RUTA
+  const adhRuta = stats.adherenciaRuta || [];
+  const velBase = parseInt(document.getElementById('vel-base')?document.getElementById('vel-base').value:40) || 40;
+  const rutaOk = adhRuta.filter(a=>a.estado==='ok').length;
+  const rutaLeve = adhRuta.filter(a=>a.estado==='leve').length;
+  const rutaExc = adhRuta.filter(a=>a.estado==='excedido').length;
+  const rutaSinBase = adhRuta.filter(a=>a.estado==='sin_base').length;
+  const rutaPct = adhRuta.length>rutaSinBase ? Math.round(rutaOk/(adhRuta.length-rutaSinBase)*100) : 0;
+  document.getElementById('adh-ruta-sum').innerHTML = `
+    <div class="scard"><div class="sval">${adhRuta.length}</div><div class="slbl">Tramos medidos</div></div>
+    <div class="scard"><div class="sval" style="color:var(--green)">${rutaOk}</div><div class="slbl">En tiempo</div></div>
+    <div class="scard"><div class="sval" style="color:var(--amber)">${rutaLeve}</div><div class="slbl">Leve (+20 min)</div></div>
+    <div class="scard"><div class="sval" style="color:var(--red)">${rutaExc}</div><div class="slbl">Excedido</div></div>
+    <div class="scard"><div class="sval" style="color:${rutaPct>=80?'var(--green)':rutaPct>=60?'var(--amber)':'var(--red)'}">${rutaPct}%</div><div class="slbl">% adherencia ruta</div></div>
+    <div class="scard"><div class="sval" style="color:var(--gray)">${rutaSinBase}</div><div class="slbl">Sin km base</div></div>`;
+
+  document.getElementById('adh-ruta-tbody').innerHTML = adhRuta.length
+    ? adhRuta.map(a => {
+        const eCls = a.estado==='ok'?'b-ok':a.estado==='leve'?'b-warn':a.estado==='excedido'?'b-bad':'b-na';
+        const eLbl = a.estado==='ok'?'En tiempo':a.estado==='leve'?'Leve':a.estado==='excedido'?'Excedido':'Sin base km';
+        return `<tr>
+          <td>${a.fecha}</td><td style="color:var(--blue);font-weight:500">${a.protocolo}</td>
+          <td>${a.conductor}</td><td style="font-size:11px">${a.tramo}</td>
+          <td style="text-align:center">${a.kmTramo!==null?a.kmTramo:'—'}</td>
+          <td style="text-align:center">${a.tiempoEsperado!==null?a.tiempoEsperado+' min':'—'}</td>
+          <td style="text-align:center;font-weight:600">${a.tiempoReal} min</td>
+          <td style="text-align:center;font-weight:600;color:${a.diferencia===null?'var(--gray)':a.diferencia<=0?'var(--green-t)':'var(--red-t)'}">${a.diferencia!==null?(a.diferencia>=0?'+':'')+a.diferencia+' min':'—'}</td>
+          <td><span class="badge ${eCls}">${eLbl}</span></td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="9" class="empty">Sin datos — requiere hora salida tienda y hora llegada siguiente tienda</td></tr>';
 
   document.getElementById('load-adh').style.display='none';
   document.getElementById('cont-adh').style.display='block';

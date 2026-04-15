@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#185FA5">
-<title>FleteTrack — Conductor</title>
+<title>TRASLADARR3 — Conductor</title>
 <style>
 :root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;--green:#1D9E75;--green-l:#E1F5EE;--green-t:#085041;--amber:#BA7517;--amber-l:#FAEEDA;--amber-t:#633806;--red:#E24B4A;--red-l:#FCEBEB;--border:#e0ddd6;--bg:#f8f7f4;--gray:#5F5E5A;--gray-l:#F1EFE8;--gray-t:#2C2C2A;--r:10px;--rs:6px}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
@@ -69,7 +69,7 @@ input[type=file]{display:none}
 </head>
 <body>
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbw7L5rVei3L0yJp-TPXrVCGE1km6QcFCYGqSEJAbqoe8wNfh9a5eb10PcaH6gATzJwS/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxagjvEewbUzjG4jdVtSZJv-xiQ6ozs2o2zMxH5y5g1gh4rqJfRRC6eAq1aHXNwTiMG/exec';
 const params = new URLSearchParams(location.search);
 const DESPACHO_ID = params.get('id') || 'D-1';
 const ROW_INDEX = parseInt(params.get('row')) || 2;
@@ -81,14 +81,14 @@ let subtabActivo = 'cargue';
 </script>
 
 <div class="header">
-  <h1 id="h-titulo">FleteTrack</h1>
+  <h1 id="h-titulo">TRASLADARR3</h1>
   <p id="h-sub">Cargando despacho...</p>
 </div>
 
 <div class="steps" id="steps-bar">
   <div class="step active" onclick="goScreen('cargue')" id="step-cargue"><div class="step-dot"></div>Cargue</div>
+  <div class="step" onclick="goScreen('novedad')" id="step-novedad"><div class="step-dot"></div>Novedades</div>
   <div class="step" onclick="goScreen('tiendas')" id="step-tiendas"><div class="step-dot"></div>Tiendas</div>
-  <div class="step" onclick="goScreen('novedad')" id="step-novedad"><div class="step-dot"></div>Novedad</div>
   <div class="step" onclick="goScreen('retorno')" id="step-retorno"><div class="step-dot"></div>Retorno</div>
 </div>
 
@@ -149,14 +149,32 @@ let subtabActivo = 'cargue';
   <div id="tienda-form" style="display:none">
     <div class="card">
       <div class="card-title" id="tf-title">Tienda</div>
-      <div class="field"><label>Nombre</label><div class="field-static" id="tf-nombre"></div></div>
+      <div class="field"><label>Nombre</label><div class="field-static blue" id="tf-nombre"></div></div>
       <div class="field-row">
         <div class="field"><label>Hora cita</label><div class="field-static" id="tf-cita"></div></div>
-        <div class="field"><label>Hora llegada real</label><input type="time" id="tf-llegada"></div>
+        <div class="field"><label>Descripción</label><div class="field-static" id="tf-desc"></div></div>
       </div>
-      <div class="field-row">
-        <div class="field"><label>Inicio descargue</label><input type="time" id="tf-inicio-desc"></div>
-        <div class="field"><label>Fin descargue</label><input type="time" id="tf-fin-desc"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Registro de tiempos</div>
+      <div style="font-size:11px;color:var(--gray);margin-bottom:10px">Toca el botón en el momento exacto — la hora se registra automáticamente.</div>
+      <div id="btn-llegada-wrap">
+        <button class="btn btn-primary" onclick="registrarHora('llegada')" id="btn-llegada">Registrar llegada a tienda</button>
+      </div>
+      <div id="hora-llegada-ok" style="display:none;background:var(--green-l);border:1px solid var(--green);border-radius:var(--rs);padding:8px 12px;margin-top:6px;font-size:12px;color:var(--green-t);font-weight:500;display:none">
+        ✓ Llegada: <span id="hora-llegada-val"></span>
+      </div>
+      <div id="btn-inicio-wrap" style="margin-top:8px;display:none">
+        <button class="btn btn-primary" onclick="registrarHora('inicio')" id="btn-inicio" style="background:var(--amber)">Registrar inicio de descargue</button>
+      </div>
+      <div id="hora-inicio-ok" style="display:none;background:var(--amber-l);border:1px solid var(--amber);border-radius:var(--rs);padding:8px 12px;margin-top:6px;font-size:12px;color:var(--amber-t);font-weight:500">
+        ✓ Inicio descargue: <span id="hora-inicio-val"></span>
+      </div>
+      <div id="btn-fin-wrap" style="margin-top:8px;display:none">
+        <button class="btn btn-primary" onclick="registrarHora('fin')" id="btn-fin" style="background:var(--amber)">Registrar fin de descargue</button>
+      </div>
+      <div id="hora-fin-ok" style="display:none;background:var(--amber-l);border:1px solid var(--amber);border-radius:var(--rs);padding:8px 12px;margin-top:6px;font-size:12px;color:var(--amber-t);font-weight:500">
+        ✓ Fin descargue: <span id="hora-fin-val"></span>
       </div>
     </div>
     <div class="card">
@@ -173,9 +191,10 @@ let subtabActivo = 'cargue';
       <div class="card-title">Observación</div>
       <div class="field"><textarea id="tf-obs" placeholder="Novedad en esta tienda..."></textarea></div>
     </div>
-    <button class="btn btn-success" style="margin-bottom:6px" onclick="guardarTienda()">Guardar llegada y descargue</button>
-    <button class="btn btn-primary" onclick="confirmarSalidaTienda()" id="btn-salida" style="background:var(--green-t)">Registrar salida de tienda → Notifica Telegram</button>
-    <button class="btn" style="background:white;border:1px solid var(--border);margin-top:6px" onclick="mostrarListaTiendas()">Volver a lista</button>
+    <div id="btn-salida-wrap" style="margin-top:8px;display:none">
+      <button class="btn btn-success" onclick="confirmarSalidaTienda()" id="btn-salida">Registrar salida de tienda → Notifica Telegram</button>
+    </div>
+    <button class="btn" style="background:white;border:1px solid var(--border);margin-top:8px" onclick="mostrarListaTiendas()">Volver a lista</button>
   </div>
 </div>
 
@@ -320,14 +339,60 @@ function abrirTienda(n){
   document.getElementById('tf-title').textContent=`Tienda ${n} — ${tiendaActual.nombre}`;
   document.getElementById('tf-nombre').textContent=tiendaActual.nombre;
   document.getElementById('tf-cita').textContent=tiendaActual.horaCita||'—';
-  const now=getNow();
-  const tfLl=document.getElementById('tf-llegada');tfLl.value=tiendaActual.horaLlegada||now;
-  const tfId=document.getElementById('tf-inicio-desc');tfId.value=tiendaActual.horaInicioDesc||'';
-  const tfFd=document.getElementById('tf-fin-desc');tfFd.value=tiendaActual.horaFinDesc||'';
+  document.getElementById('tf-desc').textContent=tiendaActual.descripcion||'—';
   document.getElementById('tf-obs').value='';
   document.getElementById('prev-tienda').innerHTML='';
   document.getElementById('ok-tienda').style.display='none';
   fotosCargadas['tienda']=null;
+  // Restaurar horas ya registradas o resetear flujo
+  resetHorasTienda();
+  if(tiendaActual.horaLlegada)   mostrarHoraOk('llegada',  tiendaActual.horaLlegada);
+  if(tiendaActual.horaInicioDesc)mostrarHoraOk('inicio',   tiendaActual.horaInicioDesc);
+  if(tiendaActual.horaFinDesc)   mostrarHoraOk('fin',      tiendaActual.horaFinDesc);
+}
+
+function resetHorasTienda(){
+  ['llegada','inicio','fin'].forEach(t=>{
+    const ok=document.getElementById(`hora-${t}-ok`);
+    const wrap=document.getElementById(`btn-${t}-wrap`);
+    const btn=document.getElementById(`btn-${t}`);
+    if(ok){ok.style.display='none';}
+    if(wrap){wrap.style.display=t==='llegada'?'block':'none';}
+    if(btn){btn.disabled=false;}
+  });
+  document.getElementById('btn-salida-wrap').style.display='none';
+}
+
+function mostrarHoraOk(tipo, hora){
+  const ok=document.getElementById(`hora-${tipo}-ok`);
+  const val=document.getElementById(`hora-${tipo}-val`);
+  const wrap=document.getElementById(`btn-${tipo}-wrap`);
+  if(ok){ok.style.display='block';}
+  if(val){val.textContent=hora;}
+  if(wrap){const btn=wrap.querySelector('button');if(btn)btn.disabled=true;}
+  // Mostrar siguiente botón
+  const siguiente={'llegada':'inicio','inicio':'fin','fin':null};
+  const sig=siguiente[tipo];
+  if(sig){
+    const sigWrap=document.getElementById(`btn-${sig}-wrap`);
+    if(sigWrap)sigWrap.style.display='block';
+  }else{
+    document.getElementById('btn-salida-wrap').style.display='block';
+  }
+}
+
+async function registrarHora(tipo){
+  if(!tiendaActual)return;
+  const hora=getNow();
+  const btn=document.getElementById(`btn-${tipo}`);
+  if(btn){btn.disabled=true;btn.textContent='Registrando...';}
+  const campo={'llegada':'horaLlegada','inicio':'horaInicioDesc','fin':'horaFinDesc'};
+  const updates={action:'registrarTienda',rowIndex:despacho.rowIndex,numeroTienda:tiendaActual.numero,protocolo:despacho.protocolo,placa:despacho.placa};
+  updates[campo[tipo]]=hora;
+  tiendaActual[campo[tipo]]=hora;
+  await apiPost(updates);
+  mostrarHoraOk(tipo,hora);
+  toast(`${tipo==='llegada'?'Llegada':tipo==='inicio'?'Inicio descargue':'Fin descargue'} registrado: ${hora}`);
 }
 
 function mostrarListaTiendas(){tiendaActual=null;document.getElementById('tiendas-lista').style.display='block';document.getElementById('tienda-form').style.display='none';}
@@ -372,24 +437,17 @@ async function confirmarCargue(){
   btn.disabled=false;btn.textContent='Confirmar cargue y salir a ruta';
 }
 
-async function guardarTienda(){
-  if(!tiendaActual)return;
-  const btn=event.target;btn.disabled=true;btn.textContent='Guardando...';
-  const fotoEtiqueta=await subirFotoAPI('tienda',{tipo:'etiqueta',tienda:tiendaActual?tiendaActual.numero:''});
-  await apiPost({action:'registrarTienda',rowIndex:despacho.rowIndex,numeroTienda:tiendaActual.numero,horaLlegada:document.getElementById('tf-llegada').value,horaInicioDesc:document.getElementById('tf-inicio-desc').value,horaFinDesc:document.getElementById('tf-fin-desc').value,observacion:document.getElementById('tf-obs').value,fotoEtiqueta,protocolo:despacho.protocolo,placa:despacho.placa});
-  tiendaActual.horaLlegada=document.getElementById('tf-llegada').value;
-  tiendaActual.horaInicioDesc=document.getElementById('tf-inicio-desc').value;
-  tiendaActual.horaFinDesc=document.getElementById('tf-fin-desc').value;
-  tiendaActual.estado='activo';
-  toast('Llegada y descargue guardados');
-  btn.disabled=false;btn.textContent='Guardar llegada y descargue';
-}
+// guardarTienda reemplazada por registrarHora() por botones individuales
 
 async function confirmarSalidaTienda(){
   if(!tiendaActual)return;
   const horaSalida=getNow();
   const btn=event.target;btn.disabled=true;btn.textContent='Registrando salida...';
-  const r=await apiPost({action:'registrarSalidaTienda',rowIndex:despacho.rowIndex,numeroTienda:tiendaActual.numero,horaSalida,nombreTienda:tiendaActual.nombre,protocolo:despacho.protocolo,placa:despacho.placa,conductor:despacho.conductor});
+  // Subir foto etiqueta si hay
+  const fotoEtiqueta=await subirFotoAPI('tienda',{tipo:'etiqueta',tienda:tiendaActual.numero});
+  // Guardar obs si hay
+  const obs=document.getElementById('tf-obs')?document.getElementById('tf-obs').value:'';
+  const r=await apiPost({action:'registrarSalidaTienda',rowIndex:despacho.rowIndex,numeroTienda:tiendaActual.numero,horaSalida,nombreTienda:tiendaActual.nombre,protocolo:despacho.protocolo,placa:despacho.placa,conductor:despacho.conductor,fotoEtiqueta,observacion:obs});
   tiendaActual.horaSalida=horaSalida;tiendaActual.estado='completado';
   toast(`Salida tienda ${tiendaActual.numero} registrada — Telegram notificado`);
   if(r.enRetorno){document.getElementById('step-retorno').classList.add('active');toast('Todas las tiendas completadas. Procede al retorno.');}
