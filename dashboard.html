@@ -91,7 +91,7 @@ body{background:var(--bg);color:#1a1a18;min-height:100vh}
 </head>
 <body>
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbxagjvEewbUzjG4jdVtSZJv-xiQ6ozs2o2zMxH5y5g1gh4rqJfRRC6eAq1aHXNwTiMG/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxks56bO8hlDuvN_s0gBENQSkvt5FV18AONHPVjinBziKli27zJjG5A6QsdK-FGQpkq/exec';
 const BASE_URL = 'https://davidmilques.github.io/TRASLADARR3/conductor.html';
 const STATS_URL = 'https://davidmilques.github.io/TRASLADARR3/estadisticas.html';
 const INFORMES_URL = 'https://davidmilques.github.io/TRASLADARR3/informes.html';
@@ -101,7 +101,7 @@ let filtroFecha='', filtroEstado='', filtroConductor='', filtroPlaca='';
 
 <div class="topbar">
   <div class="topbar-left">
-    <h1>TRASLADAR</h1>
+    <h1>TRASLADARR3</h1>
     <div class="topbar-nav">
       <a class="nav-link" id="link-stats" href="#">📊 Estadísticas</a>
       <a class="nav-link" id="link-inf" href="#">📋 Informes</a>
@@ -127,8 +127,7 @@ let filtroFecha='', filtroEstado='', filtroConductor='', filtroPlaca='';
       <option value="En retorno">En retorno</option>
       <option value="Completado">Completado</option>
       <option value="Novedad">Novedad</option>
-      <option value="Reprogramado">Reprogramado</option>
-      <option value="Cancelado">Cancelado</option>
+
     </select>
   </div>
   <div class="fsep"></div>
@@ -217,7 +216,7 @@ function limpiarFiltros(){
   filtroFecha=filtroEstado=filtroConductor=filtroPlaca='';aplicarFiltros();
 }
 
-function badgeCls(estado){const m={'Cargando':'b-cargando','En ruta':'b-ruta','En retorno':'b-retorno','Completado':'b-completado','Novedad':'b-novedad','Reprogramado':'b-reprogramado','Cancelado':'b-cancelado'};return m[estado]||'b-pend';}
+function badgeCls(estado){const m={'Cargando':'b-cargando','En ruta':'b-ruta','En retorno':'b-retorno','Completado':'b-completado','Novedad':'b-novedad'};return m[estado]||'b-pend';}
 function progColor(estado){const m={'Completado':'var(--green)','Novedad':'var(--red)','En retorno':'#7F77DD','En ruta':'var(--amber)'};return m[estado]||'var(--blue)';}
 function pct(d){if(!d.tiendas.length)return 0;return Math.round(d.tiendas.filter(t=>t.estado==='completado').length/d.tiendas.length*100);}
 
@@ -262,9 +261,13 @@ function renderDetalle(i){
     const cls=t.estado==='completado'?'ok':t.estado==='activo'?'act':'';
     const bCls=t.estado==='completado'?'b-completado':t.estado==='activo'?'b-cargando':'b-pend';
     const lbl=t.estado==='completado'?'Entregado':t.estado==='activo'?'En tienda':'Pendiente';
+    const est=(d.horasEstimadas||[]).find(e=>e.numero===t.numero);
     return`<tr><td><div class="t-circ ${cls}">${t.numero}</div></td>
       <td><div style="font-weight:500">${t.nombre}</div><div style="font-size:10px;color:var(--gray)">${t.descripcion}</div></td>
-      <td>${t.horaCita||'—'}</td><td>${t.horaLlegada||'—'}</td>
+      <td style="text-align:center;font-weight:600">${t.palletsTienda||'—'}</td>
+      <td>${t.horaCita||'—'}</td>
+      <td style="font-weight:600;color:var(--blue-t)">${est&&est.horaEstimada?est.horaEstimada:'—'}</td>
+      <td>${t.horaLlegada||'—'}</td>
       <td>${t.horaInicioDesc||'—'}</td><td>${t.horaFinDesc||'—'}</td>
       <td>${t.horaSalida||'—'}</td>
       <td><span class="badge ${bCls}">${lbl}</span></td></tr>`;
@@ -299,7 +302,7 @@ function renderDetalle(i){
       <div style="padding:12px 14px 6px;font-size:13px;font-weight:600;color:var(--gray-t)">Tiendas del despacho</div>
       <div style="overflow-x:auto">
         <table class="tiendas-table">
-          <thead><tr><th>#</th><th>Tienda</th><th>Cita</th><th>Llegada</th><th>Inicio desc.</th><th>Fin desc.</th><th>Salida</th><th>Estado</th></tr></thead>
+          <thead><tr><th>#</th><th>Tienda</th><th>Estibas</th><th>Cita</th><th>H. Estimada</th><th>Llegada</th><th>Inicio desc.</th><th>Fin desc.</th><th>Salida</th><th>Estado</th></tr></thead>
           <tbody>${tiendasHtml}</tbody>
         </table>
       </div>
@@ -308,12 +311,95 @@ function renderDetalle(i){
       <div class="card-title">Link del conductor</div>
       <div class="link-box"><span>${link}</span><button class="copy-btn" onclick="copiar('${link}')">Copiar</button></div>
     </div>
+    ${d.horaSalidaCedi?`<div class="card">
+      <div class="card-title">Aviso de despacho</div>
+      <div style="font-size:12px;color:var(--gray);margin-bottom:8px">Tablero visual para compartir al cliente cuando el vehículo sale del CEDI.</div>
+      <button onclick="verAviso('${d.id}')" style="padding:8px 16px;background:var(--blue);color:white;border:none;border-radius:var(--rs);font-size:12px;font-weight:500;cursor:pointer">Ver aviso de despacho</button>
+    </div>`:''}
     <div style="height:20px"></div>`;
 }
 
 function extraerNovedades(obs){
   if(!obs)return[];
   return[...obs.matchAll(/NOVEDAD \[([^\]]+)\]: ([^-]+) - (.+?)(?=\s*\||NOVEDAD|$)/g)].map(m=>({hora:m[1].trim(),tipo:m[2].trim(),desc:m[3].trim()}));
+}
+
+
+function verAviso(id){
+  const d=filtrados.find(x=>x.id===id);
+  if(!d)return;
+  const win=window.open('','_blank','width=680,height=700,scrollbars=yes');
+  const est=d.horasEstimadas||[];
+  const fecha=d.fecha||'';
+  const rows=d.tiendas.map((t,i)=>{
+    const e=est.find(x=>x.numero===t.numero);
+    const color=['#FF6B35','#4CAF50','#9C27B0','#2196F3','#FF9800','#E91E63','#00BCD4','#795548','#607D8B'][i]||'#888';
+    return `<tr>
+      <td style="background:${color};color:white;font-weight:700;padding:8px 12px;font-size:13px">DESTINO ${i+1}</td>
+      <td style="padding:8px 12px;border:1px solid #ddd">
+        <div style="font-size:11px;color:#666">${t.nombre}</div>
+        <div style="font-size:12px;font-weight:600">${t.descripcion||t.nombre}</div>
+      </td>
+      <td style="padding:8px 12px;border:1px solid #ddd;text-align:center">
+        <div style="font-size:10px;color:#666;font-weight:600">HORA ESTIMADA LLEGADA</div>
+        <div style="font-size:15px;font-weight:700;color:#333">${e&&e.horaEstimada?e.horaEstimada:'—'}</div>
+      </td>
+      <td style="padding:8px 12px;border:1px solid #ddd;text-align:center">
+        <div style="font-size:10px;color:#666;font-weight:600">ESTIBAS</div>
+        <div style="font-size:18px;font-weight:700;color:${color}">${t.palletsTienda||0}</div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>Aviso de despacho — ${d.protocolo}</title>
+  <style>*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}body{background:#f5f5f5;padding:20px}
+  .tablero{background:white;max-width:640px;margin:0 auto;border:2px solid #ccc}
+  .print-btn{display:block;max-width:640px;margin:0 auto 12px;padding:10px;background:#185FA5;color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;text-align:center}
+  @media print{.print-btn{display:none}body{background:white;padding:0}.tablero{border:none}}
+  </style></head><body>
+  <button class="print-btn" onclick="window.print()">Imprimir / Guardar como imagen</button>
+  <div class="tablero">
+    <div style="text-align:center;padding:10px;font-size:13px;font-weight:600;color:#333;border-bottom:1px solid #eee">${d.cedi||'CEDI'}</div>
+    <div style="background:#FF6B35;color:white;text-align:center;padding:14px;font-size:20px;font-weight:700;letter-spacing:1px">REPORTE DE SALIDA DE VEHÍCULO</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:2px solid #ccc">
+      <div style="padding:12px 16px;border-right:1px solid #ccc">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="background:#888;color:white;padding:5px 10px;font-size:11px;font-weight:600">FECHA</div>
+          <div style="font-size:14px;font-weight:600">${fecha}</div>
+        </div>
+      </div>
+      <div style="padding:12px 16px;display:flex;align-items:center;gap:8px;justify-content:flex-end">
+        <div style="background:#888;color:white;padding:5px 10px;font-size:11px;font-weight:600">PLACA</div>
+        <div style="background:#e8f4fb;border:2px solid #185FA5;padding:5px 16px;font-size:18px;font-weight:700;color:#185FA5">${d.placa}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:2px solid #ccc">
+      <div style="padding:12px 16px;border-right:1px solid #ccc">
+        <div style="display:flex;align-items:flex-start;gap:8px">
+          <div style="background:#888;color:white;padding:5px 10px;font-size:11px;font-weight:600;flex-shrink:0">ORIGEN</div>
+          <div>
+            <div style="font-size:12px;color:#666">${d.protocolo}</div>
+            <div style="font-size:13px;font-weight:600">${d.cedi||''}</div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:12px 16px">
+        <div style="margin-bottom:8px;display:flex;align-items:center;gap:8px">
+          <div style="font-size:11px;color:#666;font-weight:600;min-width:90px">HORA SALIDA</div>
+          <div style="background:#4CAF50;color:white;padding:6px 14px;font-size:18px;font-weight:700;flex:1;text-align:center">${d.horaSalidaCedi||'—'}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="font-size:11px;color:#666;font-weight:600;min-width:90px">HORA RETORNO</div>
+          <div style="background:${d.horaRetornoCedi?'#4CAF50':'#e8f4fb'};color:${d.horaRetornoCedi?'white':'#ccc'};padding:6px 14px;font-size:18px;font-weight:700;flex:1;text-align:center">${d.horaRetornoCedi||''}</div>
+        </div>
+      </div>
+    </div>
+    <table style="width:100%;border-collapse:collapse">${rows}</table>
+    <div style="padding:10px 16px;text-align:center;font-size:10px;color:#999;border-top:1px solid #eee">FleteTrack · ${d.conductor||''} · Protocolo ${d.protocolo}</div>
+  </div>
+  </body></html>`);
+  win.document.close();
 }
 
 function copiar(url){navigator.clipboard.writeText(url).then(()=>toast('Link copiado'));}

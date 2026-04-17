@@ -69,15 +69,17 @@ input[type=file]{display:none}
 </head>
 <body>
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbxagjvEewbUzjG4jdVtSZJv-xiQ6ozs2o2zMxH5y5g1gh4rqJfRRC6eAq1aHXNwTiMG/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxks56bO8hlDuvN_s0gBENQSkvt5FV18AONHPVjinBziKli27zJjG5A6QsdK-FGQpkq/exec';
 const params = new URLSearchParams(location.search);
 const DESPACHO_ID = params.get('id') || 'D-1';
 const ROW_INDEX = parseInt(params.get('row')) || 2;
 let despacho = null;
 let fotosCargadas = {};
+let fotosMultiples = { tienda: [], novCargue: [], novRuta: [] };
 let tiendaActual = null;
 let novTipo = '';
 let subtabActivo = 'cargue';
+const LS_KEY = () => `fletetrack_${DESPACHO_ID}`;
 </script>
 
 <div class="header">
@@ -154,6 +156,22 @@ let subtabActivo = 'cargue';
         <div class="field"><label>Hora cita</label><div class="field-static" id="tf-cita"></div></div>
         <div class="field"><label>Descripción</label><div class="field-static" id="tf-desc"></div></div>
       </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Estibas para esta tienda</label>
+          <input type="number" id="tf-pallets" min="0" placeholder="0" style="font-size:16px;font-weight:600;text-align:center">
+        </div>
+        <div class="field">
+          <label>Tiempo estimado en tienda</label>
+          <div class="field-static" id="tf-tiempo-tienda" style="color:var(--amber-t);font-weight:600">—</div>
+        </div>
+      </div>
+    </div>
+    <!-- Tiempo estimado próximo destino -->
+    <div id="tiempo-proximo-wrap" style="display:none;background:var(--blue-l);border:1px solid var(--blue);border-radius:var(--r);padding:12px;margin-bottom:10px">
+      <div style="font-size:11px;font-weight:600;color:var(--blue-t);margin-bottom:4px">Tiempo estimado al próximo destino</div>
+      <div id="tiempo-proximo" style="font-size:18px;font-weight:700;color:var(--blue-t)">—</div>
+      <div id="hora-estimada-proximo" style="font-size:12px;color:var(--blue-t);margin-top:2px">—</div>
     </div>
     <div class="card">
       <div class="card-title">Registro de tiempos</div>
@@ -178,13 +196,13 @@ let subtabActivo = 'cargue';
       </div>
     </div>
     <div class="card">
-      <div class="card-title">Foto etiqueta de entrega</div>
-      <input type="file" id="file-tienda" accept="image/*" capture="environment" onchange="previewFoto('file-tienda','prev-tienda','ok-tienda')">
-      <div id="prev-tienda"></div>
-      <div id="ok-tienda" class="foto-ok" style="display:none">Etiqueta registrada</div>
-      <div class="foto-btn" onclick="document.getElementById('file-tienda').click()">
+      <div class="card-title">Fotos de etiquetas <span id="foto-count-tienda" style="font-size:11px;font-weight:400;color:var(--green-t)"></span></div>
+      <div style="font-size:11px;color:var(--gray);margin-bottom:8px">Puedes agregar todas las etiquetas que necesites.</div>
+      <input type="file" id="file-tienda-multi" accept="image/*" capture="environment" onchange="agregarFotoTienda(this)">
+      <div id="galeria-tienda" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px"></div>
+      <div class="foto-btn" onclick="document.getElementById('file-tienda-multi').click()">
         <div class="foto-icon"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="2" y="6" width="16" height="12" rx="2.5" stroke="#185FA5" stroke-width="1.5"/><circle cx="10" cy="12" r="3" stroke="#185FA5" stroke-width="1.5"/><path d="M6 6V5a2 2 0 012-2h4a2 2 0 012 2v1" stroke="#185FA5" stroke-width="1.5"/></svg></div>
-        <p>Fotografiar etiqueta de entrega</p>
+        <p>Agregar foto de etiqueta</p>
       </div>
     </div>
     <div class="card">
@@ -213,13 +231,12 @@ let subtabActivo = 'cargue';
       <div class="field-row"><div class="field"><label>Pallet por remontes</label><input type="number" id="nc-remontes" min="0" value="0"></div><div class="field"><label>Contenedores</label><input type="number" id="nc-contenedores" min="0" value="0"></div></div>
     </div>
     <div class="card">
-      <div class="card-title">Foto de novedad (opcional)</div>
-      <input type="file" id="file-nov-cargue" accept="image/*" capture="environment" onchange="previewFoto('file-nov-cargue','prev-nov-cargue','ok-nov-cargue')">
-      <div id="prev-nov-cargue"></div>
-      <div id="ok-nov-cargue" class="foto-ok" style="display:none">Foto registrada</div>
-      <div class="foto-btn" onclick="document.getElementById('file-nov-cargue').click()">
+      <div class="card-title">Fotos de novedad <span id="foto-count-nc" style="font-size:11px;font-weight:400;color:var(--green-t)"></span></div>
+      <input type="file" id="file-nov-cargue-multi" accept="image/*" capture="environment" onchange="agregarFotoNovCargue(this)">
+      <div id="galeria-nc" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px"></div>
+      <div class="foto-btn" onclick="document.getElementById('file-nov-cargue-multi').click()">
         <div class="foto-icon"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="2" y="6" width="16" height="12" rx="2.5" stroke="#185FA5" stroke-width="1.5"/><circle cx="10" cy="12" r="3" stroke="#185FA5" stroke-width="1.5"/><path d="M6 6V5a2 2 0 012-2h4a2 2 0 012 2v1" stroke="#185FA5" stroke-width="1.5"/></svg></div>
-        <p>Foto opcional de novedad</p>
+        <p>Agregar foto de evento</p>
       </div>
     </div>
     <button class="btn btn-warning" onclick="enviarNovedadCargue()">Registrar novedades de cargue</button>
@@ -245,13 +262,12 @@ let subtabActivo = 'cargue';
       <div class="field"><textarea id="nov-desc" placeholder="Describe la situación..."></textarea></div>
     </div>
     <div class="card">
-      <div class="card-title">Foto evidencia</div>
-      <input type="file" id="file-novedad" accept="image/*" capture="environment" onchange="previewFoto('file-novedad','prev-novedad','ok-novedad')">
-      <div id="prev-novedad"></div>
-      <div id="ok-novedad" class="foto-ok" style="display:none">Foto registrada</div>
-      <div class="foto-btn" onclick="document.getElementById('file-novedad').click()">
+      <div class="card-title">Fotos de evidencia <span id="foto-count-nov" style="font-size:11px;font-weight:400;color:var(--green-t)"></span></div>
+      <input type="file" id="file-novedad-multi" accept="image/*" capture="environment" onchange="agregarFotoNovRuta(this)">
+      <div id="galeria-nov" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px"></div>
+      <div class="foto-btn" onclick="document.getElementById('file-novedad-multi').click()">
         <div class="foto-icon"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="2" y="6" width="16" height="12" rx="2.5" stroke="#185FA5" stroke-width="1.5"/><circle cx="10" cy="12" r="3" stroke="#185FA5" stroke-width="1.5"/><path d="M6 6V5a2 2 0 012-2h4a2 2 0 012 2v1" stroke="#185FA5" stroke-width="1.5"/></svg></div>
-        <p>Foto opcional</p>
+        <p>Agregar foto de evidencia</p>
       </div>
     </div>
     <button class="btn btn-warning" onclick="enviarNovedadRuta()">Enviar novedad al operador</button>
@@ -296,16 +312,182 @@ window.addEventListener('DOMContentLoaded',()=>{cargarDespacho();setHora('t-reto
 function setHora(id){const n=new Date();const el=document.getElementById(id);if(el&&el.tagName==='INPUT')el.value=`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;}
 
 async function cargarDespacho(){
+  // Intentar restaurar desde localStorage primero
+  const local = cargarLocal();
+  if(local && local.despacho){
+    despacho = local.despacho;
+    renderDespacho();
+    toast('Sesión restaurada — datos guardados localmente');
+  }
+  // Luego actualizar desde el servidor
   try{
     const r=await fetch(`${API_URL}?action=getDespacho&id=${DESPACHO_ID}`);
     const d=await r.json();
     if(d.error)throw new Error(d.error);
+    // Combinar: mantener horas ya registradas localmente
+    if(local && local.despacho){
+      d.despacho.tiendas = d.despacho.tiendas.map((t,i)=>{
+        const lt = local.despacho.tiendas && local.despacho.tiendas[i];
+        if(!lt)return t;
+        return {...t, horaLlegada:t.horaLlegada||lt.horaLlegada, horaInicioDesc:t.horaInicioDesc||lt.horaInicioDesc, horaFinDesc:t.horaFinDesc||lt.horaFinDesc, horaSalida:t.horaSalida||lt.horaSalida, estado:t.estado==='completado'?'completado':lt.estado||t.estado};
+      });
+    }
     despacho=d.despacho;
-  }catch(e){despacho=demoDespacho();}
+  }catch(e){
+    if(!despacho)despacho=demoDespacho();
+  }
+  guardarLocal();
   renderDespacho();
 }
 
+
+// ---- GALERÍAS DE FOTOS MÚLTIPLES ----
+function agregarFotoTienda(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const idx=fotosMultiples.tienda.length;
+    fotosMultiples.tienda.push({base64:e.target.result.split(',')[1],nombre:file.name,mimeType:file.type});
+    const galeria=document.getElementById('galeria-tienda');
+    const div=document.createElement('div');
+    div.style.cssText='position:relative;border-radius:6px;overflow:hidden';
+    div.innerHTML=`<img src="${e.target.result}" style="width:100%;aspect-ratio:1;object-fit:cover;display:block"><button onclick="quitarFoto('tienda',${idx},this.parentElement)" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.5);color:white;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;cursor:pointer">✕</button>`;
+    galeria.appendChild(div);
+    document.getElementById('foto-count-tienda').textContent=`(${fotosMultiples.tienda.length} foto${fotosMultiples.tienda.length!==1?'s':''})`;
+    input.value='';
+  };
+  reader.readAsDataURL(file);
+}
+
+function agregarFotoNovCargue(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const idx=fotosMultiples.novCargue.length;
+    fotosMultiples.novCargue.push({base64:e.target.result.split(',')[1],nombre:file.name,mimeType:file.type});
+    const galeria=document.getElementById('galeria-nc');
+    const div=document.createElement('div');div.style.cssText='position:relative;border-radius:6px;overflow:hidden';
+    div.innerHTML=`<img src="${e.target.result}" style="width:100%;aspect-ratio:1;object-fit:cover;display:block"><button onclick="quitarFoto('novCargue',${idx},this.parentElement)" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.5);color:white;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;cursor:pointer">✕</button>`;
+    galeria.appendChild(div);
+    document.getElementById('foto-count-nc').textContent=`(${fotosMultiples.novCargue.length} foto${fotosMultiples.novCargue.length!==1?'s':''})`;
+    input.value='';
+  };
+  reader.readAsDataURL(file);
+}
+
+function agregarFotoNovRuta(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const idx=fotosMultiples.novRuta.length;
+    fotosMultiples.novRuta.push({base64:e.target.result.split(',')[1],nombre:file.name,mimeType:file.type});
+    const galeria=document.getElementById('galeria-nov');
+    const div=document.createElement('div');div.style.cssText='position:relative;border-radius:6px;overflow:hidden';
+    div.innerHTML=`<img src="${e.target.result}" style="width:100%;aspect-ratio:1;object-fit:cover;display:block"><button onclick="quitarFoto('novRuta',${idx},this.parentElement)" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.5);color:white;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;cursor:pointer">✕</button>`;
+    galeria.appendChild(div);
+    document.getElementById('foto-count-nov').textContent=`(${fotosMultiples.novRuta.length} foto${fotosMultiples.novRuta.length!==1?'s':''})`;
+    input.value='';
+  };
+  reader.readAsDataURL(file);
+}
+
+function quitarFoto(tipo, idx, el){
+  fotosMultiples[tipo][idx]=null;
+  el.remove();
+  const validos=fotosMultiples[tipo].filter(Boolean).length;
+  const map={tienda:'foto-count-tienda',novCargue:'foto-count-nc',novRuta:'foto-count-nov'};
+  const el2=document.getElementById(map[tipo]);
+  if(el2)el2.textContent=validos>0?`(${validos} foto${validos!==1?'s':''})`:' ';
+}
+
+async function subirFotosMultiples(tipo, metaBase){
+  const fotos=fotosMultiples[tipo].filter(Boolean);
+  if(!fotos.length)return[];
+  const urls=[];
+  for(let i=0;i<fotos.length;i++){
+    const f=fotos[i];
+    try{
+      const r=await apiPost({action:'subirFoto',base64:f.base64,nombre:f.nombre,mimeType:f.mimeType,...metaBase,tipo:`${metaBase.tipo||tipo}_${i+1}`});
+      if(r.url)urls.push(r.url);
+    }catch(e){}
+  }
+  fotosMultiples[tipo]=[];
+  return urls;
+}
+
+function resetGaleriaTienda(){
+  fotosMultiples.tienda=[];
+  const g=document.getElementById('galeria-tienda');if(g)g.innerHTML='';
+  const c=document.getElementById('foto-count-tienda');if(c)c.textContent='';
+}
+
+
+// ---- TIEMPOS ESTIMADOS ----
+function actualizarTiempoTienda(){
+  const p=parseInt(document.getElementById('tf-pallets').value)||0;
+  const mins=p*5;
+  const el=document.getElementById('tf-tiempo-tienda');
+  if(el)el.textContent=p>0?`${mins} min (${p} estibas × 5 min)`:'—';
+}
+
+function mostrarTiempoProximo(){
+  if(!tiendaActual||!despacho)return;
+  const estimados=despacho.horasEstimadas||[];
+  // Buscar el siguiente destino después de la tienda actual
+  const idxActual=despacho.tiendas.findIndex(t=>t.numero===tiendaActual.numero);
+  const siguiente=despacho.tiendas[idxActual+1];
+  const wrap=document.getElementById('tiempo-proximo-wrap');
+  const elTiempo=document.getElementById('tiempo-proximo');
+  const elHora=document.getElementById('hora-estimada-proximo');
+  if(!wrap)return;
+  if(siguiente){
+    const est=estimados.find(e=>e.numero===siguiente.numero);
+    if(est&&est.horaEstimada){
+      wrap.style.display='block';
+      elTiempo.textContent=est.minTramo?`${est.minTramo} min de viaje`:'Sin tiempo base';
+      elHora.textContent=`Hora estimada llegada ${siguiente.nombre}: ${est.horaEstimada}`;
+    }else{
+      wrap.style.display='none';
+    }
+  }else{
+    // Última tienda — mostrar retorno al CEDI
+    const estRetorno=estimados.find(e=>e.numero===-1);
+    if(estRetorno){
+      wrap.style.display='block';
+      elTiempo.textContent=`${estRetorno.minTramo} min de retorno`;
+      elHora.textContent=`Hora estimada retorno CEDI: ${estRetorno.horaEstimada}`;
+    }else{
+      wrap.style.display='none';
+    }
+  }
+}
+
+// Guardar pallets al confirmar salida tienda
+async function guardarPalletsTienda(){
+  const p=parseInt(document.getElementById('tf-pallets').value)||0;
+  if(p>0&&tiendaActual){
+    tiendaActual.palletsTienda=p;
+    await apiPost({action:'registrarPalletsTienda',rowIndex:despacho.rowIndex,
+      pallets:[{numero:tiendaActual.numero,cantidad:p}],protocolo:despacho.protocolo});
+    guardarLocal();
+  }
+}
+
 function demoDespacho(){return{id:'D-1',rowIndex:2,protocolo:'P-2041',placa:'ABC-123',conductor:'Pedro Ramírez',cedi:'CEDI Mocoa',turno:'Diurno',estadoCargue:'Cargando',cargaUtil:'8.5 ton',muelle:'3',pallet:'12',horaCargue:'07:30',horaOfrecimiento:'06:00',horaEntradaCedi:'06:15',horaSalidaCedi:'07:45',fecha:'09/04/2026',dia:'Miércoles',tiendas:[{numero:1,nombre:'Supermercado La 14',descripcion:'Refrigerados',horaCita:'09:00',estado:'pendiente',horaLlegada:'',horaInicioDesc:'',horaFinDesc:'',horaSalida:''},{numero:2,nombre:'Tienda Comunal Norte',descripcion:'Secos',horaCita:'10:30',estado:'pendiente',horaLlegada:'',horaInicioDesc:'',horaFinDesc:'',horaSalida:''},{numero:3,nombre:'Minimercado El Sol',descripcion:'Lácteos',horaCita:'11:30',estado:'pendiente',horaLlegada:'',horaInicioDesc:'',horaFinDesc:'',horaSalida:''}]};}
+
+function guardarLocal(){
+  try{localStorage.setItem(LS_KEY(),JSON.stringify({despacho,tiendaActual:null}));}catch(e){}
+}
+function cargarLocal(){
+  try{
+    const raw=localStorage.getItem(LS_KEY());
+    if(!raw)return null;
+    return JSON.parse(raw);
+  }catch(e){return null;}
+}
+function limpiarLocal(){
+  try{localStorage.removeItem(LS_KEY());}catch(e){}
+}
 
 function renderDespacho(){
   document.getElementById('h-titulo').textContent=`Protocolo ${despacho.protocolo}`;
@@ -329,7 +511,7 @@ function renderListaTiendas(){
   if(!despacho||!despacho.tiendas.length){lista.innerHTML='<div class="loading">Sin tiendas</div>';return;}
   const ok=despacho.tiendas.filter(t=>t.estado==='completado').length;
   const pct=Math.round(ok/despacho.tiendas.length*100);
-  lista.innerHTML=`<div class="card" style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:13px;font-weight:600">Tiendas del despacho</span><span style="font-size:12px;font-weight:600;color:var(--green)">${ok}/${despacho.tiendas.length}</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div></div>${despacho.tiendas.map(t=>`<div class="tienda-item ${t.estado}" onclick="abrirTienda(${t.numero})"><div class="t-num">${t.numero}</div><div class="t-info"><div class="t-name">${t.nombre}</div><div class="t-sub">${t.descripcion} · Cita ${t.horaCita}${t.horaSalida?' · Salida '+t.horaSalida:''}</div></div>${t.estado==='completado'?'<span style="color:var(--green);font-size:16px">✓</span>':'<span style="font-size:11px;color:var(--gray)">→</span>'}</div>`).join('')}`;
+  lista.innerHTML=`<div class="card" style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:13px;font-weight:600">Tiendas del despacho</span><span style="font-size:12px;font-weight:600;color:var(--green)">${ok}/${despacho.tiendas.length}</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div></div>${despacho.tiendas.map(t=>`<div class="tienda-item ${t.estado}" onclick="abrirTienda(${t.numero})"><div class="t-num">${t.numero}</div><div class="t-info"><div class="t-name">${t.nombre}</div><div class="t-sub">${t.descripcion} · Cita ${t.horaCita}${t.palletsTienda?' · '+t.palletsTienda+' estibas':''}${t.horaSalida?' · Salida '+t.horaSalida:''}</div></div>${t.estado==='completado'?'<span style="color:var(--green);font-size:16px">✓</span>':'<span style="font-size:11px;color:var(--gray)">→</span>'}</div>`).join('')}`;
 }
 
 function abrirTienda(n){
@@ -339,11 +521,18 @@ function abrirTienda(n){
   document.getElementById('tf-title').textContent=`Tienda ${n} — ${tiendaActual.nombre}`;
   document.getElementById('tf-nombre').textContent=tiendaActual.nombre;
   document.getElementById('tf-cita').textContent=tiendaActual.horaCita||'—';
+  // Estibas — cargar valor existente o dejar en blanco
+  const palletsInput=document.getElementById('tf-pallets');
+  palletsInput.value=tiendaActual.palletsTienda||'';
+  palletsInput.oninput=()=>actualizarTiempoTienda();
+  actualizarTiempoTienda();
+  mostrarTiempoProximo();
   document.getElementById('tf-desc').textContent=tiendaActual.descripcion||'—';
   document.getElementById('tf-obs').value='';
   document.getElementById('prev-tienda').innerHTML='';
   document.getElementById('ok-tienda').style.display='none';
   fotosCargadas['tienda']=null;
+  resetGaleriaTienda();
   // Restaurar horas ya registradas o resetear flujo
   resetHorasTienda();
   if(tiendaActual.horaLlegada)   mostrarHoraOk('llegada',  tiendaActual.horaLlegada);
@@ -390,6 +579,7 @@ async function registrarHora(tipo){
   const updates={action:'registrarTienda',rowIndex:despacho.rowIndex,numeroTienda:tiendaActual.numero,protocolo:despacho.protocolo,placa:despacho.placa};
   updates[campo[tipo]]=hora;
   tiendaActual[campo[tipo]]=hora;
+  guardarLocal();
   await apiPost(updates);
   mostrarHoraOk(tipo,hora);
   toast(`${tipo==='llegada'?'Llegada':tipo==='inicio'?'Inicio descargue':'Fin descargue'} registrado: ${hora}`);
@@ -441,10 +631,12 @@ async function confirmarCargue(){
 
 async function confirmarSalidaTienda(){
   if(!tiendaActual)return;
+  await guardarPalletsTienda();
   const horaSalida=getNow();
   const btn=event.target;btn.disabled=true;btn.textContent='Registrando salida...';
   // Subir foto etiqueta si hay
-  const fotoEtiqueta=await subirFotoAPI('tienda',{tipo:'etiqueta',tienda:tiendaActual.numero});
+  const fotosEtiqueta=await subirFotosMultiples('tienda',{tipo:'etiqueta',tienda:tiendaActual.numero,protocolo:despacho.protocolo,placa:despacho.placa,fecha:despacho.fecha});
+  const fotoEtiqueta=fotosEtiqueta[0]||null;
   // Guardar obs si hay
   const obs=document.getElementById('tf-obs')?document.getElementById('tf-obs').value:'';
   const r=await apiPost({action:'registrarSalidaTienda',rowIndex:despacho.rowIndex,numeroTienda:tiendaActual.numero,horaSalida,nombreTienda:tiendaActual.nombre,protocolo:despacho.protocolo,placa:despacho.placa,conductor:despacho.conductor,fotoEtiqueta,observacion:obs});
@@ -460,7 +652,8 @@ async function enviarNovedadCargue(){
   const valores={'PALLET EN RESERVA':parseInt(document.getElementById('nc-pallet-res').value)||0,'ESTIBAS NO LOCALIZADAS':parseInt(document.getElementById('nc-estibas').value)||0,'PALLET SIN VINIPEL':parseInt(document.getElementById('nc-sin-vinipel').value)||0,'PALLET MAL CONFORMADAS':parseInt(document.getElementById('nc-mal-conf').value)||0,'PALLET POR REMONTES':parseInt(document.getElementById('nc-remontes').value)||0,'CONTENEDORES':parseInt(document.getElementById('nc-contenedores').value)||0};
   const hayValores=Object.values(valores).some(v=>v>0);
   if(!hayValores){toast('Ingresa al menos una cantidad mayor a 0');btn.disabled=false;btn.textContent='Registrar novedades de cargue';return;}
-  const fotoUrl=await subirFotoAPI('nov-cargue',{tipo:'novedad_cargue'});
+  const fotosNC=await subirFotosMultiples('novCargue',{tipo:'novedad_cargue',protocolo:despacho.protocolo,placa:despacho.placa,fecha:despacho.fecha});
+  const fotoUrl=fotosNC[0]||null;
   await apiPost({action:'registrarNovedadCargue',rowIndex:despacho.rowIndex,protocolo:despacho.protocolo,placa:despacho.placa,conductor:despacho.conductor,fecha:despacho.fecha,dia:despacho.dia,turno:despacho.turno,valores,fotoUrl});
   toast('Novedades de cargue registradas');
   ['nc-pallet-res','nc-estibas','nc-sin-vinipel','nc-mal-conf','nc-remontes','nc-contenedores'].forEach(id=>{document.getElementById(id).value=0;});
@@ -472,7 +665,8 @@ async function enviarNovedadRuta(){
   const desc=document.getElementById('nov-desc').value.trim();
   if(!desc){toast('Escribe una descripción');return;}
   const btn=event.target;btn.disabled=true;btn.textContent='Enviando...';
-  const fotoUrl=await subirFotoAPI('novedad',{tipo:'novedad_ruta'});
+  const fotosNR=await subirFotosMultiples('novRuta',{tipo:'novedad_ruta',protocolo:despacho.protocolo,placa:despacho.placa,fecha:despacho.fecha});
+  const fotoUrl=fotosNR[0]||null;
   await apiPost({action:'registrarNovedad',rowIndex:despacho.rowIndex,tipo:novTipo,descripcion:desc,tiendaAfectada:document.getElementById('nov-tienda').value,fotoUrl,protocolo:despacho.protocolo,placa:despacho.placa,conductor:despacho.conductor});
   toast('Novedad enviada — Telegram notificado');
   document.getElementById('nov-desc').value='';
@@ -485,7 +679,7 @@ async function confirmarRetorno(){
   const btn=document.getElementById('btn-retorno');btn.disabled=true;btn.textContent='Completando...';
   const fotoProtocolo=await subirFotoAPI('protocolo',{tipo:'protocolo_cierre'});
   await apiPost({action:'registrarRetorno',rowIndex:despacho.rowIndex,horaRetorno:document.getElementById('t-retorno').value,observaciones:document.getElementById('obs-retorno').value,fotoProtocolo,protocolo:despacho.protocolo,placa:despacho.placa,conductor:despacho.conductor});
-  toast('¡Despacho completado!');btn.textContent='¡Despacho completado!';
+  toast('¡Despacho completado!');btn.textContent='¡Despacho completado!';limpiarLocal();
 }
 
 function goScreen(name){
