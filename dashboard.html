@@ -91,7 +91,7 @@ body{background:var(--bg);color:#1a1a18;min-height:100vh}
 </head>
 <body>
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbzon1eetwwIcNP9gqCzf5nHmYIxodsiKe_s2cja_qbF5FCtBkDVX37ifktDY2NqiHga/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxuFVHqwstEG3Klyhg8uPYi5fz_0kyLbbo3BhYdJq63pg3oYKGKuwYE9rwsaOcB5r04/exec';
 const BASE_URL = 'https://davidmilques.github.io/TRASLADARR3/conductor.html';
 const STATS_URL = 'https://davidmilques.github.io/TRASLADARR3/estadisticas.html';
 const INFORMES_URL = 'https://davidmilques.github.io/TRASLADARR3/informes.html';
@@ -101,7 +101,7 @@ let filtroFecha='', filtroEstado='', filtroConductor='', filtroPlaca='';
 
 <div class="topbar">
   <div class="topbar-left">
-    <h1>TRASLADARR3</h1>
+    <h1>FleteTrack</h1>
     <div class="topbar-nav">
       <a class="nav-link" id="link-stats" href="#">📊 Estadísticas</a>
       <a class="nav-link" id="link-inf" href="#">📋 Informes</a>
@@ -392,7 +392,7 @@ function verAviso(id){
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           <div style="font-size:11px;color:#666;font-weight:600;min-width:90px">HORA RETORNO</div>
-          <div style="background:${d.horaRetornoCedi?'#4CAF50':'#e8f4fb'};color:${d.horaRetornoCedi?'white':'#ccc'};padding:6px 14px;font-size:18px;font-weight:700;flex:1;text-align:center">${d.horaRetornoCedi||''}</div>
+          <div style="background:${(()=>{const ret=(d.horasEstimadas||[]).find(e=>e.esRetorno);const h=d.horaRetornoCedi||(ret?ret.horaEstimada:'');return h?'#4CAF50':'#e8f4fb';})()};color:${(()=>{const ret=(d.horasEstimadas||[]).find(e=>e.esRetorno);return(d.horaRetornoCedi||(ret?ret.horaEstimada:''))?'white':'#ccc';})()};padding:6px 14px;font-size:16px;font-weight:700;flex:1;text-align:center">${(()=>{const ret=(d.horasEstimadas||[]).find(e=>e.esRetorno);return d.horaRetornoCedi||(ret?ret.horaEstimada+' est.':'');})()}</div>
         </div>
       </div>
     </div>

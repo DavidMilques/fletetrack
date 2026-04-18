@@ -69,7 +69,7 @@ input[type=file]{display:none}
 </head>
 <body>
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbzon1eetwwIcNP9gqCzf5nHmYIxodsiKe_s2cja_qbF5FCtBkDVX37ifktDY2NqiHga/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxuFVHqwstEG3Klyhg8uPYi5fz_0kyLbbo3BhYdJq63pg3oYKGKuwYE9rwsaOcB5r04/exec';
 const params = new URLSearchParams(location.search);
 const DESPACHO_ID = params.get('id') || 'D-1';
 const ROW_INDEX = parseInt(params.get('row')) || 2;
@@ -316,29 +316,38 @@ window.addEventListener('DOMContentLoaded',()=>{cargarDespacho();setHora('t-reto
 function setHora(id){const n=new Date();const el=document.getElementById(id);if(el&&el.tagName==='INPUT')el.value=`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;}
 
 async function cargarDespacho(){
-  // Intentar restaurar desde localStorage primero
+  document.getElementById('cargue-loading').style.display='block';
+  document.getElementById('cargue-form').style.display='none';
+  // Intentar restaurar localStorage
   const local = cargarLocal();
-  if(local && local.despacho){
-    despacho = local.despacho;
-    renderDespacho();
-    toast('Sesión restaurada — datos guardados localmente');
-  }
-  // Luego actualizar desde el servidor
   try{
     const r=await fetch(`${API_URL}?action=getDespacho&id=${DESPACHO_ID}`);
     const d=await r.json();
     if(d.error)throw new Error(d.error);
-    // Combinar: mantener horas ya registradas localmente
-    if(local && local.despacho){
-      d.despacho.tiendas = d.despacho.tiendas.map((t,i)=>{
-        const lt = local.despacho.tiendas && local.despacho.tiendas[i];
+    // Combinar horas locales con datos frescos del servidor
+    if(local && local.despacho && local.despacho.tiendas){
+      d.despacho.tiendas = d.despacho.tiendas.map(t=>{
+        const lt=local.despacho.tiendas.find(x=>x.numero===t.numero);
         if(!lt)return t;
-        return {...t, horaLlegada:t.horaLlegada||lt.horaLlegada, horaInicioDesc:t.horaInicioDesc||lt.horaInicioDesc, horaFinDesc:t.horaFinDesc||lt.horaFinDesc, horaSalida:t.horaSalida||lt.horaSalida, estado:t.estado==='completado'?'completado':lt.estado||t.estado};
+        return {...t,
+          horaLlegada:   t.horaLlegada   ||lt.horaLlegada,
+          horaInicioDesc:t.horaInicioDesc||lt.horaInicioDesc,
+          horaFinDesc:   t.horaFinDesc   ||lt.horaFinDesc,
+          horaSalida:    t.horaSalida    ||lt.horaSalida,
+          palletsTienda: t.palletsTienda ||lt.palletsTienda||0,
+          estado:t.estado==='completado'?'completado':lt.estado||t.estado};
       });
     }
     despacho=d.despacho;
   }catch(e){
-    if(!despacho)despacho=demoDespacho();
+    // Sin conexión: usar localStorage si existe, sino demo
+    if(local && local.despacho){
+      despacho=local.despacho;
+      toast('Sin conexión — usando datos guardados localmente');
+    }else{
+      despacho=demoDespacho();
+      toast('Modo demo — configura API_URL');
+    }
   }
   guardarLocal();
   renderDespacho();
