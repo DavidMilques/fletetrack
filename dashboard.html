@@ -91,7 +91,7 @@ body{background:var(--bg);color:#1a1a18;min-height:100vh}
 </head>
 <body>
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbxks56bO8hlDuvN_s0gBENQSkvt5FV18AONHPVjinBziKli27zJjG5A6QsdK-FGQpkq/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzon1eetwwIcNP9gqCzf5nHmYIxodsiKe_s2cja_qbF5FCtBkDVX37ifktDY2NqiHga/exec';
 const BASE_URL = 'https://davidmilques.github.io/TRASLADARR3/conductor.html';
 const STATS_URL = 'https://davidmilques.github.io/TRASLADARR3/estadisticas.html';
 const INFORMES_URL = 'https://davidmilques.github.io/TRASLADARR3/informes.html';
@@ -295,8 +295,9 @@ function renderDetalle(i){
         <div class="time-box"><div class="time-val">${d.horaOfrecimiento||'—'}</div><div class="time-lbl">Ofrecimiento</div></div>
         <div class="time-box"><div class="time-val">${d.horaEntradaCedi||'—'}</div><div class="time-lbl">Entrada CEDI</div></div>
         <div class="time-box hi"><div class="time-val">${d.horaSalidaCedi||'—'}</div><div class="time-lbl">Salida CEDI</div></div>
-        <div class="time-box"><div class="time-val">${d.horaRetornoCedi||'—'}</div><div class="time-lbl">Retorno</div></div>
+        <div class="time-box"><div class="time-val">${d.horaRetornoCedi||'—'}</div><div class="time-lbl">Retorno real</div></div>
       </div>
+      ${(()=>{const ret=(d.horasEstimadas||[]).find(e=>e.esRetorno);return ret?`<div style="margin-top:8px;background:var(--blue-l);border-radius:var(--rs);padding:8px 12px;font-size:12px;color:var(--blue-t);display:flex;align-items:center;gap:8px"><span style="font-weight:600">Retorno estimado CEDI:</span><span style="font-size:15px;font-weight:700">${ret.horaEstimada}</span><span style="opacity:.7">(${ret.minTramo} min de viaje)</span></div>`:'';})()}
     </div>
     <div class="card" style="padding:0;overflow:hidden">
       <div style="padding:12px 14px 6px;font-size:13px;font-weight:600;color:var(--gray-t)">Tiendas del despacho</div>
