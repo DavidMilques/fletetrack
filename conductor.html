@@ -83,7 +83,7 @@ const LS_KEY = () => `fletetrack_${DESPACHO_ID}`;
 </script>
 
 <div class="header">
-  <h1 id="h-titulo">FleteTrack</h1>
+  <h1 id="h-titulo">TRASLADARR3</h1>
   <p id="h-sub">Cargando despacho...</p>
 </div>
 
@@ -112,7 +112,7 @@ const LS_KEY = () => `fletetrack_${DESPACHO_ID}`;
       <div class="card-title">Muelle y Pallets totales</div>
       <div class="field-row">
         <div class="field"><label>Muelle #</label><input type="number" id="t-muelle" placeholder="0"></div>
-        <div class="field"><label>Pallets totales</label><input type="number" id="t-pallet" placeholder="0"></div>
+        <div class="field"><label>Pallets totales</label><div class="field-static" id="t-pallet-total" style="font-size:16px;font-weight:700;color:var(--blue-t);text-align:center">—</div></div>
       </div>
     </div>
     <div class="card" id="card-pallets-tienda" style="display:none">
@@ -487,48 +487,55 @@ function renderCamposPallets(){
   if(!card||!campos)return;
   card.style.display='block';
   campos.innerHTML=despacho.tiendas.map(t=>`
-    <div class="field-row" style="margin-bottom:6px;align-items:center">
-      <div class="field" style="flex:2">
-        <label>T${t.numero} · ${t.nombre}</label>
-        <div class="field-static" style="font-size:11px;color:var(--gray)">${t.descripcion||''}</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:8px;background:var(--bg);border-radius:var(--rs);border:1px solid var(--border)">
+      <div style="flex:2;min-width:0">
+        <div style="font-size:12px;font-weight:500;color:var(--gray-t)">T${t.numero} · ${t.nombre}</div>
+        <div style="font-size:10px;color:var(--gray)">${t.descripcion||''}</div>
       </div>
-      <div class="field" style="flex:1">
-        <label>Estibas</label>
-        <input type="number" id="pallet-t${t.numero}" min="0" value="${t.palletsTienda||''}"
-          placeholder="0" style="font-size:16px;font-weight:600;text-align:center"
-          onchange="actualizarPalletTienda(${t.numero},this.value)">
+      <div style="flex:0 0 80px;text-align:center">
+        <div style="font-size:10px;color:var(--gray);margin-bottom:2px">Estibas</div>
+        <input type="number" id="pallet-t${t.numero}" min="0" value="${t.palletsTienda||0}"
+          placeholder="0" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:var(--rs);font-size:18px;font-weight:700;text-align:center;background:var(--blue-l);color:var(--blue-t)"
+          oninput="actualizarPalletTienda(${t.numero},this.value)">
       </div>
     </div>`).join('');
+  actualizarTotalPallets();
+}
+
+function actualizarTotalPallets(){
+  if(!despacho)return;
+  const total=despacho.tiendas.reduce((s,t)=>s+(t.palletsTienda||0),0);
+  const el=document.getElementById('t-pallet-total');
+  if(el)el.textContent=total>0?total:'—';
 }
 
 function actualizarPalletTienda(numero, valor){
   const t=despacho.tiendas.find(x=>x.numero===numero);
   if(t)t.palletsTienda=parseInt(valor)||0;
+  actualizarTotalPallets();
   guardarLocal();
 }
 
 async function guardarTodosPallets(){
   if(!despacho)return;
-  const pallets=despacho.tiendas.map(t=>{
+  // Leer valores actuales de los inputs
+  despacho.tiendas.forEach(t=>{
     const input=document.getElementById(`pallet-t${t.numero}`);
-    const val=input?parseInt(input.value)||0:t.palletsTienda||0;
-    t.palletsTienda=val;
-    return{numero:t.numero,cantidad:val};
-  }).filter(p=>p.cantidad>0);
+    if(input)t.palletsTienda=parseInt(input.value)||0;
+  });
+  const pallets=despacho.tiendas
+    .filter(t=>t.palletsTienda>0)
+    .map(t=>({numero:t.numero,cantidad:t.palletsTienda}));
   if(pallets.length>0){
-    await apiPost({action:'registrarPalletsTienda',rowIndex:despacho.rowIndex,pallets,protocolo:despacho.protocolo});
+    await apiPost({action:'registrarPalletsTienda',
+      rowIndex:despacho.rowIndex, pallets, protocolo:despacho.protocolo});
   }
   guardarLocal();
 }
 
-function guardarPalletsTienda(){
-  const p=parseInt(document.getElementById('tf-pallets').value)||0;
-  if(p>0&&tiendaActual){
-    tiendaActual.palletsTienda=p;
-    await apiPost({action:'registrarPalletsTienda',rowIndex:despacho.rowIndex,
-      pallets:[{numero:tiendaActual.numero,cantidad:p}],protocolo:despacho.protocolo});
-    guardarLocal();
-  }
+async function guardarPalletsTienda(){
+  // Los pallets se guardan en el cargue, no en tienda
+  return;
 }
 
 function demoDespacho(){return{id:'D-1',rowIndex:2,protocolo:'P-2041',placa:'ABC-123',conductor:'Pedro Ramírez',cedi:'CEDI Mocoa',turno:'Diurno',estadoCargue:'Cargando',cargaUtil:'8.5 ton',muelle:'3',pallet:'12',horaCargue:'07:30',horaOfrecimiento:'06:00',horaEntradaCedi:'06:15',horaSalidaCedi:'07:45',fecha:'09/04/2026',dia:'Miércoles',tiendas:[{numero:1,nombre:'Supermercado La 14',descripcion:'Refrigerados',horaCita:'09:00',estado:'pendiente',horaLlegada:'',horaInicioDesc:'',horaFinDesc:'',horaSalida:''},{numero:2,nombre:'Tienda Comunal Norte',descripcion:'Secos',horaCita:'10:30',estado:'pendiente',horaLlegada:'',horaInicioDesc:'',horaFinDesc:'',horaSalida:''},{numero:3,nombre:'Minimercado El Sol',descripcion:'Lácteos',horaCita:'11:30',estado:'pendiente',horaLlegada:'',horaInicioDesc:'',horaFinDesc:'',horaSalida:''}]};}
@@ -558,7 +565,7 @@ function renderDespacho(){
   document.getElementById('t-cargue').textContent=despacho.horaCargue||'—';
   document.getElementById('t-salida').textContent=despacho.horaSalidaCedi||'—';
   if(despacho.muelle){const m=document.getElementById('t-muelle');if(m)m.value=despacho.muelle;}
-  if(despacho.pallet){const p=document.getElementById('t-pallet');if(p)p.value=despacho.pallet;}
+  // pallet total se calcula desde tiendas
   document.getElementById('cargue-loading').style.display='none';
   document.getElementById('cargue-form').style.display='block';
   renderCamposPallets();
@@ -675,7 +682,7 @@ async function subirFotoAPI(key,meta={}){
 async function confirmarCargue(){
   const btn=event.target;btn.disabled=true;btn.textContent='Guardando...';
   const fotoUrl=await subirFotoAPI('cargue',{tipo:'cargue'});
-  await apiPost({action:'registrarCargue',rowIndex:despacho.rowIndex,muelle:document.getElementById('t-muelle').value,pallet:document.getElementById('t-pallet').value,observaciones:document.getElementById('obs-cargue').value,fotoUrl,protocolo:despacho.protocolo,placa:despacho.placa});
+  await apiPost({action:'registrarCargue',rowIndex:despacho.rowIndex,muelle:document.getElementById('t-muelle').value,pallet:despacho.tiendas.reduce((s,t)=>s+(t.palletsTienda||0),0),observaciones:document.getElementById('obs-cargue').value,fotoUrl,protocolo:despacho.protocolo,placa:despacho.placa});
   await guardarTodosPallets();
   toast('Cargue confirmado. ¡Buen viaje!');
   document.getElementById('step-cargue').classList.replace('active','done');
