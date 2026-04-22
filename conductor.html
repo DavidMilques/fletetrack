@@ -302,7 +302,7 @@ input[type=file]{display:none}
 // ================================================================
 //  CONFIG
 // ================================================================
-const API_URL      = 'https://script.google.com/macros/s/AKfycbxuFVHqwstEG3Klyhg8uPYi5fz_0kyLbbo3BhYdJq63pg3oYKGKuwYE9rwsaOcB5r04/exec';
+const API_URL      = 'https://script.google.com/macros/s/AKfycbyL4w7VllLnvdns58p2gYHnlm6ymbJ5mGyqJIVbf0O8NeEj3lPTBINXeHbg0osyE22j/exec';
 const params       = new URLSearchParams(location.search);
 const DESPACHO_ID  = params.get('id') || 'D-1';
 const LS_KEY       = `ft_${DESPACHO_ID}`;
@@ -320,6 +320,12 @@ let cargueConfirmado = false;
 //  INIT
 // ================================================================
 window.addEventListener('DOMContentLoaded', iniciar);
+
+window.addEventListener('unhandledrejection', e => {
+  toast('Error de conexión. Intenta de nuevo.');
+  e.preventDefault();
+});
+
 
 async function iniciar() {
   const local = lsGet();
