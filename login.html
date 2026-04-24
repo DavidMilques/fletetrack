@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#185FA5">
+<title>TRASLADARR3 — Acceso</title>
+<style>
+:root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;--green:#1D9E75;--green-l:#E1F5EE;--green-t:#085041;--red:#E24B4A;--red-l:#FCEBEB;--border:#E0DDD6;--bg:#F8F7F4;--gray:#5F5E5A;--gray-t:#2C2C2A;--r:12px;--rs:8px}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{background:var(--blue);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.login-wrap{width:100%;max-width:380px}
+/* LOGO AREA */
+.logo-area{text-align:center;margin-bottom:28px}
+.logo-img{max-width:180px;max-height:90px;object-fit:contain;margin-bottom:12px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.25))}
+.logo-placeholder{width:120px;height:60px;background:rgba(255,255,255,.15);border-radius:var(--r);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:22px;font-weight:700;color:white;letter-spacing:1px}
+.app-name{font-size:26px;font-weight:700;color:white;letter-spacing:.5px}
+.app-sub{font-size:13px;color:rgba(255,255,255,.65);margin-top:4px}
+/* LOGIN CARD */
+.card{background:white;border-radius:var(--r);padding:28px 24px;box-shadow:0 8px 32px rgba(0,0,0,.18)}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--gray);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.field input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:14px;color:var(--gray-t);outline:none;transition:border-color .2s}
+.field input:focus{border-color:var(--blue)}
+.field .pw-wrap{position:relative}
+.field .pw-wrap input{padding-right:44px}
+.field .pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray);font-size:16px;padding:4px}
+.error-msg{background:var(--red-l);border:1px solid var(--red);border-radius:var(--rs);padding:9px 12px;font-size:12px;color:#791F1F;margin-bottom:14px;display:none}
+.btn-login{width:100%;padding:13px;background:var(--blue);color:white;border:none;border-radius:var(--rs);font-size:15px;font-weight:600;cursor:pointer;margin-top:4px;transition:background .2s}
+.btn-login:hover{background:var(--blue-t)}
+.btn-login:disabled{opacity:.6;cursor:not-allowed}
+.footer-txt{text-align:center;font-size:11px;color:rgba(255,255,255,.45);margin-top:20px}
+/* MENU */
+.menu-wrap{display:none}
+.menu-header{text-align:center;margin-bottom:24px}
+.menu-header .user-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);border-radius:20px;padding:6px 14px;font-size:13px;color:white;margin-bottom:8px}
+.menu-header h2{font-size:20px;font-weight:700;color:white}
+.menu-header p{font-size:12px;color:rgba(255,255,255,.6);margin-top:3px}
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.menu-btn{background:white;border:none;border-radius:var(--r);padding:18px 12px;text-align:center;cursor:pointer;text-decoration:none;display:block;transition:transform .15s,box-shadow .15s}
+.menu-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.15)}
+.menu-icon{font-size:26px;margin-bottom:6px}
+.menu-label{font-size:13px;font-weight:600;color:var(--gray-t)}
+.menu-sub{font-size:10px;color:var(--gray);margin-top:2px}
+.menu-btn-full{grid-column:1/-1}
+.logout-btn{width:100%;padding:11px;background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.3);border-radius:var(--rs);font-size:13px;cursor:pointer;margin-top:6px}
+.logout-btn:hover{background:rgba(255,255,255,.25)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="view-login">
+  <div class="logo-area">
+    <!-- Logo: reemplaza src con la URL de tu logo subido a GitHub -->
+    <img src="logo.png" alt="Logo empresa" class="logo-img" id="logo-img"
+         onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='flex'">
+    <div class="logo-placeholder" id="logo-fallback" style="display:none">FT</div>
+    <div class="app-name">FleteTrack</div>
+    <div class="app-sub">Sistema de gestión logística</div>
+  </div>
+  <div class="card">
+    <div class="error-msg" id="error-msg">Usuario o contraseña incorrectos</div>
+    <div class="field">
+      <label>Usuario</label>
+      <input type="text" id="inp-user" placeholder="Ingresa tu usuario" autocomplete="username"
+             onkeydown="if(event.key==='Enter')document.getElementById('inp-pass').focus()">
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <div class="pw-wrap">
+        <input type="password" id="inp-pass" placeholder="Ingresa tu contraseña" autocomplete="current-password"
+               onkeydown="if(event.key==='Enter')intentarLogin()">
+        <button class="pw-eye" onclick="togglePass()" title="Mostrar/ocultar">👁</button>
+      </div>
+    </div>
+    <button class="btn-login" id="btn-login" onclick="intentarLogin()">Ingresar</button>
+  </div>
+  <div class="footer-txt">FleteTrack v3 · Acceso restringido</div>
+</div>
+
+<!-- MENÚ PRINCIPAL -->
+<div class="login-wrap menu-wrap" id="view-menu">
+  <div class="logo-area" style="margin-bottom:20px">
+    <img src="logo.png" alt="Logo" class="logo-img" style="max-height:60px"
+         onerror="this.style.display='none'">
+    <div class="app-name">FleteTrack</div>
+  </div>
+  <div class="menu-header">
+    <div class="user-badge">
+      <span>👤</span><span id="menu-usuario">Administrador</span>
+    </div>
+    <p id="menu-fecha"></p>
+  </div>
+  <div class="menu-grid">
+    <a class="menu-btn" id="link-dashboard" href="#">
+      <div class="menu-icon">📊</div>
+      <div class="menu-label">Dashboard</div>
+      <div class="menu-sub">Panel en tiempo real</div>
+    </a>
+    <a class="menu-btn" id="link-conductor" href="#" onclick="abrirConductor(event)">
+      <div class="menu-icon">🚛</div>
+      <div class="menu-label">Conductor</div>
+      <div class="menu-sub">App de despacho</div>
+    </a>
+    <a class="menu-btn" id="link-estadisticas" href="#">
+      <div class="menu-icon">📈</div>
+      <div class="menu-label">Estadísticas</div>
+      <div class="menu-sub">Análisis de operación</div>
+    </a>
+    <a class="menu-btn" id="link-informes" href="#">
+      <div class="menu-icon">📋</div>
+      <div class="menu-label">Informes</div>
+      <div class="menu-sub">Exportar datos</div>
+    </a>
+    <a class="menu-btn" id="link-documentos" href="#">
+      <div class="menu-icon">📄</div>
+      <div class="menu-label">Documentos</div>
+      <div class="menu-sub">Conductores y vehículos</div>
+    </a>
+    <a class="menu-btn menu-btn-full" id="link-mantenimiento" href="#" style="display:none">
+      <div class="menu-icon">🔧</div>
+      <div class="menu-label">Mantenimiento</div>
+      <div class="menu-sub">Flota vehicular — fichas, historial y alertas</div>
+    </a>
+  </div>
+  <button class="logout-btn" onclick="cerrarSesion()">Cerrar sesión</button>
+</div>
+
+<script>
+// ── CONFIGURACIÓN DE USUARIOS ──────────────────────────────────
+// Para cambiar usuario/clave, edita directamente estos valores
+const USUARIOS = [
+  { usuario: 'admin',      clave: 'fletetrack2024', nombre: 'Administrador', rol: 'admin' },
+  // Agrega más usuarios así:
+  // { usuario: 'operador1', clave: 'clave123',       nombre: 'Juan Pérez',    rol: 'operador' },
+];
+
+// ── URLS DE LOS MÓDULOS ────────────────────────────────────────
+const BASE = 'https://davidmilques.github.io/TRASLADARR3/';
+const URLS = {
+  dashboard:     BASE + 'dashboard.html',
+  conductor:     BASE + 'conductor.html',
+  estadisticas:  BASE + 'estadisticas.html',
+  informes:      BASE + 'informes.html',
+  mantenimiento: BASE + 'mantenimiento.html',
+  documentos:    BASE + 'documentos.html'
+};
+
+// ── SESIÓN ─────────────────────────────────────────────────────
+const SESSION_KEY = 'ft_session';
+
+window.addEventListener('DOMContentLoaded', () => {
+  const s = getSession();
+  if (s) mostrarMenu(s);
+  else mostrarLogin();
+  // Fecha en menú
+  document.getElementById('menu-fecha').textContent =
+    new Date().toLocaleDateString('es-CO', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  // Asignar links
+  document.getElementById('link-dashboard').href    = URLS.dashboard;
+  document.getElementById('link-estadisticas').href = URLS.estadisticas;
+  document.getElementById('link-informes').href     = URLS.informes;
+  document.getElementById('link-mantenimiento').href= URLS.mantenimiento;
+  document.getElementById('link-documentos').href    = URLS.documentos || (BASE + 'documentos.html');
+});
+
+function intentarLogin() {
+  const user = document.getElementById('inp-user').value.trim().toLowerCase();
+  const pass = document.getElementById('inp-pass').value;
+  const btn  = document.getElementById('btn-login');
+  const err  = document.getElementById('error-msg');
+  btn.disabled = true; btn.textContent = 'Verificando...';
+  err.style.display = 'none';
+  // Pequeño delay para no parecer instantáneo
+  setTimeout(() => {
+    const found = USUARIOS.find(u => u.usuario.toLowerCase() === user && u.clave === pass);
+    if (found) {
+      setSession(found);
+      mostrarMenu(found);
+    } else {
+      err.style.display = 'block';
+      document.getElementById('inp-pass').value = '';
+      document.getElementById('inp-pass').focus();
+    }
+    btn.disabled = false; btn.textContent = 'Ingresar';
+  }, 400);
+}
+
+function mostrarLogin() {
+  document.getElementById('view-login').style.display = 'block';
+  document.getElementById('view-menu').style.display  = 'none';
+  setTimeout(() => document.getElementById('inp-user').focus(), 100);
+}
+
+function mostrarMenu(sesion) {
+  document.getElementById('view-login').style.display = 'none';
+  document.getElementById('view-menu').style.display  = 'block';
+  document.getElementById('menu-usuario').textContent = sesion.nombre || sesion.usuario;
+}
+
+function cerrarSesion() {
+  clearSession();
+  document.getElementById('inp-user').value = '';
+  document.getElementById('inp-pass').value = '';
+  mostrarLogin();
+}
+
+function abrirConductor(e) {
+  e.preventDefault();
+  // El módulo conductor necesita id y row — abrir sin parámetros va a demo
+  window.location.href = URLS.conductor;
+}
+
+function togglePass() {
+  const inp = document.getElementById('inp-pass');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function setSession(u) {
+  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ usuario:u.usuario, nombre:u.nombre, rol:u.rol })); } catch{}
+}
+function getSession() {
+  try { const r = sessionStorage.getItem(SESSION_KEY); return r ? JSON.parse(r) : null; } catch { return null; }
+}
+function clearSession() {
+  try { sessionStorage.removeItem(SESSION_KEY); } catch{}
+}
+</script>
+</body>
+</html>

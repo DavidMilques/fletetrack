@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#185FA5">
+<title>TRASLADARR3 — Documentos</title>
+<style>
+:root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;--green:#1D9E75;--green-l:#E1F5EE;--green-t:#085041;--amber:#BA7517;--amber-l:#FAEEDA;--amber-t:#633806;--red:#E24B4A;--red-l:#FCEBEB;--red-t:#791F1F;--gray:#5F5E5A;--gray-l:#F1EFE8;--gray-t:#2C2C2A;--border:#E0DDD6;--bg:#F8F7F4;--r:10px;--rs:6px}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{background:var(--bg);color:#1a1a18}
+.topbar{background:var(--blue);color:white;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:20}
+.topbar h1{font-size:16px;font-weight:600}
+.topbar-nav{display:flex;gap:4px}
+.nav-link{background:rgba(255,255,255,.15);border:none;color:white;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;text-decoration:none}
+.tabs{display:flex;border-bottom:1px solid var(--border);background:white;padding:0 20px;position:sticky;top:52px;z-index:10}
+.tab-btn{padding:10px 14px;font-size:12px;font-weight:500;color:var(--gray);cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap}
+.tab-btn.sel{color:var(--blue);border-bottom-color:var(--blue)}
+.content{padding:16px 20px;max-width:1100px;margin:0 auto}
+.tab-pane{display:none}.tab-pane.active{display:block}
+.card{background:white;border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.card-title{font-size:13px;font-weight:600;color:var(--gray-t);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+/* RESUMEN ALERTAS */
+.alerta-top{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.alerta-box{border-radius:var(--r);padding:14px;text-align:center;border:1px solid}
+.alerta-box.vencido{background:var(--red-l);border-color:var(--red)}
+.alerta-box.proximo{background:var(--amber-l);border-color:var(--amber)}
+.alerta-box.ok{background:var(--green-l);border-color:var(--green)}
+.alerta-box .num{font-size:26px;font-weight:700}
+.alerta-box .lbl{font-size:11px;font-weight:500;margin-top:2px}
+.alerta-box.vencido .num,.alerta-box.vencido .lbl{color:var(--red-t)}
+.alerta-box.proximo .num,.alerta-box.proximo .lbl{color:var(--amber-t)}
+.alerta-box.ok .num,.alerta-box.ok .lbl{color:var(--green-t)}
+/* TARJETAS CONDUCTOR */
+.cond-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.cond-card{background:white;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;position:relative}
+.cond-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px}
+.cond-card.vencido::before{background:var(--red)}
+.cond-card.proximo::before{background:var(--amber)}
+.cond-card.ok::before{background:var(--green)}
+.cond-header{padding:12px 14px 8px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start}
+.cond-nombre{font-size:14px;font-weight:600;color:var(--gray-t)}
+.cond-cedula{font-size:11px;color:var(--gray);margin-top:1px}
+.badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500;white-space:nowrap}
+.b-ok{background:var(--green-l);color:var(--green-t)}
+.b-warn{background:var(--amber-l);color:var(--amber-t)}
+.b-venc{background:var(--red-l);color:var(--red-t)}
+.b-na{background:var(--gray-l);color:var(--gray)}
+.cond-docs{padding:10px 14px}
+.doc-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);gap:8px}
+.doc-row:last-child{border-bottom:none}
+.doc-nombre{font-size:11px;color:var(--gray-t);flex:1}
+.doc-fecha{font-size:11px;font-weight:500;text-align:right}
+.doc-acciones{display:flex;gap:4px;flex-shrink:0}
+.icon-btn{background:none;border:1px solid var(--border);border-radius:4px;padding:3px 6px;cursor:pointer;font-size:11px;color:var(--gray)}
+.icon-btn:hover{background:var(--bg)}
+.cond-footer{padding:8px 14px;border-top:1px solid var(--border);display:flex;gap:6px;align-items:center}
+.drive-link{font-size:11px;color:var(--blue);text-decoration:none;display:flex;align-items:center;gap:3px}
+/* TABLA VEHICULOS */
+.tbl-wrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{font-size:10px;font-weight:600;color:var(--gray);text-align:left;padding:7px 10px;border-bottom:2px solid var(--border);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;background:white}
+td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg)}
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-bg.open{display:flex}
+.modal{background:white;border-radius:var(--r);padding:20px;width:100%;max-width:440px}
+.modal-title{font-size:14px;font-weight:600;color:var(--gray-t);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--gray)}
+.field{margin-bottom:10px}
+.field label{display:block;font-size:11px;font-weight:500;color:var(--gray);margin-bottom:3px}
+.field input{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:var(--rs);font-size:13px;outline:none}
+.field input:focus{border-color:var(--blue)}
+.btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.btn{padding:9px 16px;border:none;border-radius:var(--rs);font-size:13px;font-weight:500;cursor:pointer}
+.btn-primary{background:var(--blue);color:white}
+.btn-outline{background:white;border:1px solid var(--border);color:var(--gray-t)}
+.upload-area{border:2px dashed var(--border);border-radius:var(--r);padding:16px;text-align:center;cursor:pointer;margin-bottom:10px}
+.upload-area:hover{border-color:var(--blue);background:var(--blue-l)}
+.upload-ok{background:var(--green-l);border:1px solid var(--green);border-radius:var(--rs);padding:8px;font-size:12px;color:var(--green-t);text-align:center;margin-bottom:8px;display:none}
+/* LOADING */
+.loading{text-align:center;padding:30px;color:var(--gray)}
+.spinner{width:26px;height:26px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:24px;color:var(--gray);font-size:12px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a18;color:white;padding:9px 16px;border-radius:20px;font-size:12px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+.search-box{padding:7px 11px;border:1px solid var(--border);border-radius:var(--rs);font-size:12px;outline:none;min-width:180px}
+.search-box:focus{border-color:var(--blue)}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>📄 Documentos</h1>
+  <div class="topbar-nav">
+    <a class="nav-link" href="login.html">Inicio</a>
+    <a class="nav-link" href="dashboard_v2.html">Dashboard</a>
+  </div>
+</div>
+<div class="tabs">
+  <button class="tab-btn sel" onclick="showTab('alertas',this)">Alertas</button>
+  <button class="tab-btn" onclick="showTab('conductores',this)">Conductores</button>
+  <button class="tab-btn" onclick="showTab('vehiculos',this)">Vehículos / Cliente</button>
+</div>
+<div class="content">
+
+<!-- ALERTAS -->
+<div id="tab-alertas" class="tab-pane active">
+  <div id="load-alertas" class="loading"><div class="spinner"></div>Cargando documentos...</div>
+  <div id="cont-alertas" style="display:none">
+    <div class="alerta-top" id="alerta-resumen"></div>
+    <div class="card">
+      <div class="card-title">Documentos por vencer o vencidos</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Conductor / Placa</th><th>Documento</th><th>Vencimiento</th><th>Estado</th><th>Acciones</th></tr></thead>
+        <tbody id="alertas-tbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- CONDUCTORES -->
+<div id="tab-conductores" class="tab-pane">
+  <div class="card" style="margin-bottom:12px;padding:10px 16px">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <input class="search-box" id="buscar-cond" placeholder="Buscar conductor..." oninput="renderConductores()">
+      <select id="filtro-estado-cond" onchange="renderConductores()" style="padding:7px 8px;border:1px solid var(--border);border-radius:var(--rs);font-size:12px">
+        <option value="">Todos</option>
+        <option value="vencido">Vencidos</option>
+        <option value="proximo">Por vencer</option>
+        <option value="ok">Al día</option>
+      </select>
+      <span id="cond-count" style="font-size:12px;color:var(--gray);margin-left:auto"></span>
+    </div>
+  </div>
+  <div id="cont-conductores" class="cond-grid"></div>
+</div>
+
+<!-- VEHICULOS / CLIENTE -->
+<div id="tab-vehiculos" class="tab-pane">
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="padding:12px 16px;font-size:13px;font-weight:600;color:var(--gray-t)">Documentos por vehículo / Cliente</div>
+    <div class="tbl-wrap">
+      <table id="tabla-vehiculos">
+        <thead id="thead-veh"></thead>
+        <tbody id="tbody-veh"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<!-- MODAL EDITAR FECHA -->
+<div class="modal-bg" id="modal-fecha">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="modal-fecha-titulo">Actualizar fecha</span>
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+    </div>
+    <div class="field">
+      <label id="modal-doc-label">Documento</label>
+      <input type="date" id="modal-fecha-val">
+    </div>
+    <div style="margin-bottom:10px">
+      <div style="font-size:11px;font-weight:600;color:var(--gray);margin-bottom:6px">SUBIR DOCUMENTO AL DRIVE</div>
+      <input type="file" id="file-doc" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="onFileSelected(this)">
+      <div class="upload-ok" id="upload-ok">✓ Archivo listo para subir</div>
+      <div class="upload-area" onclick="document.getElementById('file-doc').click()">
+        <div style="font-size:20px;margin-bottom:4px">📎</div>
+        <div style="font-size:12px;color:var(--gray)">PDF, JPG o PNG — toca para seleccionar</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarFecha()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbyvzYz_rqEq9-e9COeXuqBY5nR5zDV9kdfhbkmaMJfe-0qAJmARLyrhxPAJPsyqihBL/exec';
+
+const DOCS_COND = [
+  { key:'vencLicencia',    label:'Licencia de conducción',     columna:'FECHA VENCIMIENTO LICENCIA' },
+  { key:'vencCarnet',      label:'Carnet manipulación alimentos', columna:'FECHA VENCIMIENTO CARNET' },
+  { key:'vencCursoSingle', label:'Curso single pallet',         columna:'FECHA VENCIMIENTO CURSO SINGLE' },
+  { key:'vencExamen',      label:'Examen médico',               columna:'FECHA VENCIMIENTO EXAMEN' }
+];
+
+let conductores = [];
+let vehiculos   = [];
+let modalCtx    = null; // { tipo, rowIndex, columna, nombre }
+let archivoSel  = null;
+
+window.addEventListener('DOMContentLoaded', cargar);
+
+async function cargar() {
+  try {
+    const r = await fetch(`${API_URL}?action=getDocumentos`);
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    conductores = d.conductores || [];
+    vehiculos   = d.vehiculos   || [];
+  } catch(e) {
+    conductores = demoConduct();
+    vehiculos   = demoVehiculos();
+    toast('Modo demo — ' + (e.message || 'configura API_URL'));
+  }
+  document.getElementById('load-alertas').style.display = 'none';
+  document.getElementById('cont-alertas').style.display = 'block';
+  renderAlertas();
+  renderConductores();
+  renderVehiculos();
+}
+
+// ── ALERTAS ────────────────────────────────────────────────────
+function renderAlertas() {
+  const hoy    = new Date(); hoy.setHours(0,0,0,0);
+  const alerta = new Date(hoy); alerta.setDate(alerta.getDate()+30);
+  const filas  = [];
+
+  conductores.forEach(c => {
+    DOCS_COND.forEach(d => {
+      const f = c[d.key]; if (!f || f === '—') return;
+      const fd = parseFecha(f); if (!fd) return;
+      const dias = Math.round((fd-hoy)/86400000);
+      if (dias > 30) return;
+      filas.push({ quien:c.nombre, doc:d.label, fecha:f, dias,
+        estado: dias<=0?'vencido':'proximo',
+        tipo:'conductor', rowIndex:c.rowIndex, columna:d.columna, nombre:c.nombre });
+    });
+  });
+
+  vehiculos.forEach(v => {
+    Object.entries(v.docs||{}).forEach(([doc,fecha]) => {
+      if (!fecha||fecha==='—') return;
+      const fd = parseFecha(fecha); if (!fd) return;
+      const dias = Math.round((fd-hoy)/86400000);
+      if (dias > 30) return;
+      filas.push({ quien:v.placa, doc, fecha, dias,
+        estado: dias<=0?'vencido':'proximo',
+        tipo:'vehiculo', rowIndex:v.rowIndex, columna:doc, nombre:v.placa });
+    });
+  });
+
+  filas.sort((a,b) => a.dias-b.dias);
+  const nVenc = filas.filter(f=>f.estado==='vencido').length;
+  const nProx = filas.filter(f=>f.estado==='proximo').length;
+  const nOk   = conductores.filter(c=>c.estado==='ok').length + vehiculos.filter(v=>v.estado==='ok').length;
+
+  document.getElementById('alerta-resumen').innerHTML = `
+    <div class="alerta-box vencido"><div class="num">${nVenc}</div><div class="lbl">Vencidos</div></div>
+    <div class="alerta-box proximo"><div class="num">${nProx}</div><div class="lbl">Próximos 30 días</div></div>
+    <div class="alerta-box ok"><div class="num">${nOk}</div><div class="lbl">Al día</div></div>`;
+
+  const tbody = document.getElementById('alertas-tbody');
+  if (!filas.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">✓ Todos los documentos están al día</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filas.map(f => {
+    const bCls = f.estado==='vencido'?'b-venc':'b-warn';
+    const bTxt = f.dias<=0?`Vencido hace ${Math.abs(f.dias)}d`:`Vence en ${f.dias}d`;
+    return `<tr>
+      <td style="font-weight:600">${f.quien}</td>
+      <td>${f.doc}</td>
+      <td>${f.fecha}</td>
+      <td><span class="badge ${bCls}">${bTxt}</span></td>
+      <td><button class="icon-btn" onclick="abrirModal('${f.tipo}',${f.rowIndex},'${f.columna}','${f.nombre}','${f.doc}','${f.fecha}')">✏️ Actualizar</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── CONDUCTORES ────────────────────────────────────────────────
+function renderConductores() {
+  const buscar = document.getElementById('buscar-cond').value.toLowerCase();
+  const estado = document.getElementById('filtro-estado-cond').value;
+  const lista  = conductores.filter(c => {
+    if (buscar && !c.nombre.toLowerCase().includes(buscar) && !c.cedula.includes(buscar)) return false;
+    if (estado && c.estado !== estado) return false;
+    return true;
+  });
+  document.getElementById('cond-count').textContent = `${lista.length} conductor${lista.length!==1?'es':''}`;
+  const el = document.getElementById('cont-conductores');
+  if (!lista.length) { el.innerHTML = '<div class="empty" style="grid-column:1/-1">Sin resultados</div>'; return; }
+  el.innerHTML = lista.map(c => {
+    const docs = DOCS_COND.map(d => {
+      const f   = c[d.key] || '—';
+      const fd  = parseFecha(f);
+      const hoy = new Date(); hoy.setHours(0,0,0,0);
+      const alerta = new Date(hoy); alerta.setDate(alerta.getDate()+30);
+      const bCls = !fd?'b-na':fd<=hoy?'b-venc':fd<=alerta?'b-warn':'b-ok';
+      const bTxt = !fd?'Sin fecha':fd<=hoy?'Vencido':fd<=alerta?diasStr(fd,hoy):'Al día';
+      return `<div class="doc-row">
+        <span class="doc-nombre">${d.label}</span>
+        <span class="doc-fecha">${f}</span>
+        <span class="badge ${bCls}" style="margin-left:4px">${bTxt}</span>
+        <div class="doc-acciones">
+          <button class="icon-btn" title="Actualizar" onclick="abrirModal('conductor',${c.rowIndex},'${d.columna}','${escHtml(c.nombre)}','${d.label}','${f}')">✏️</button>
+        </div>
+      </div>`;
+    }).join('');
+    return `<div class="cond-card ${c.estado}">
+      <div class="cond-header">
+        <div><div class="cond-nombre">${c.nombre}</div><div class="cond-cedula">CC ${c.cedula||'—'}</div></div>
+        <span class="badge ${c.estado==='ok'?'b-ok':c.estado==='proximo'?'b-warn':'b-venc'}">${c.estado==='ok'?'Al día':c.estado==='proximo'?'Por vencer':'Vencido'}</span>
+      </div>
+      <div class="cond-docs">${docs}</div>
+      ${c.driveUrl?`<div class="cond-footer"><a class="drive-link" href="${c.driveUrl}" target="_blank">📁 Ver carpeta en Drive</a></div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ── VEHÍCULOS ──────────────────────────────────────────────────
+function renderVehiculos() {
+  if (!vehiculos.length) {
+    document.getElementById('tbody-veh').innerHTML = '<tr><td class="empty">Sin datos de vehículos</td></tr>';
+    return;
+  }
+  // Cabecera dinámica según columnas del primer vehículo
+  const docKeys = vehiculos.length > 0 ? Object.keys(vehiculos[0].docs||{}) : [];
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const alerta = new Date(hoy); alerta.setDate(hoy.getDate()+30);
+  document.getElementById('thead-veh').innerHTML = `<tr>
+    <th>Placa</th>${docKeys.map(k=>`<th>${k}</th>`).join('')}<th>Estado</th>
+  </tr>`;
+  document.getElementById('tbody-veh').innerHTML = vehiculos.map(v => {
+    const celdas = docKeys.map(k => {
+      const f  = v.docs[k]||'—';
+      const fd = parseFecha(f);
+      const bCls = !fd?'b-na':fd<=hoy?'b-venc':fd<=alerta?'b-warn':'b-ok';
+      const bTxt = !fd?'—':fd<=hoy?'Vencido':fd<=alerta?diasStr(fd,hoy):'Al día';
+      return `<td>
+        <div>${f}</div>
+        <span class="badge ${bCls}">${bTxt}</span>
+        <button class="icon-btn" style="margin-left:4px" onclick="abrirModal('vehiculo',${v.rowIndex},'${escHtml(k)}','${v.placa}','${escHtml(k)}','${f}')">✏️</button>
+      </td>`;
+    }).join('');
+    const bCls = v.estado==='ok'?'b-ok':v.estado==='proximo'?'b-warn':'b-venc';
+    return `<tr><td style="font-weight:700">${v.placa}</td>${celdas}<td><span class="badge ${bCls}">${v.estado==='ok'?'Al día':v.estado==='proximo'?'Por vencer':'Vencido'}</span></td></tr>`;
+  }).join('');
+}
+
+// ── MODAL ──────────────────────────────────────────────────────
+function abrirModal(tipo, rowIndex, columna, nombre, docLabel, fechaActual) {
+  modalCtx = { tipo, rowIndex, columna, nombre };
+  archivoSel = null;
+  document.getElementById('modal-fecha-titulo').textContent = `Actualizar: ${nombre}`;
+  document.getElementById('modal-doc-label').textContent    = docLabel;
+  document.getElementById('file-doc').value = '';
+  document.getElementById('upload-ok').style.display = 'none';
+  // Convertir dd/MM/yyyy a yyyy-MM-dd para el input date
+  const fd = parseFecha(fechaActual);
+  document.getElementById('modal-fecha-val').value = fd ? fi(fd) : '';
+  document.getElementById('modal-fecha').classList.add('open');
+}
+
+function onFileSelected(input) {
+  const file = input.files[0];
+  if (!file) return;
+  archivoSel = file;
+  document.getElementById('upload-ok').textContent = `✓ ${file.name} — listo para subir`;
+  document.getElementById('upload-ok').style.display = 'block';
+}
+
+async function guardarFecha() {
+  if (!modalCtx) return;
+  const btn = document.querySelector('#modal-fecha .btn-primary');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  const fechaISO = document.getElementById('modal-fecha-val').value;
+  const fechaDMY = fechaISO ? fmtDMY(fechaISO) : '';
+
+  // Actualizar fecha en Sheets
+  if (fechaDMY) {
+    await apiPost({ action:'actualizarDocumento', tipo:modalCtx.tipo,
+      rowIndex:modalCtx.rowIndex, columna:modalCtx.columna, valor:fechaDMY });
+    // Actualizar local
+    if (modalCtx.tipo === 'conductor') {
+      const c = conductores.find(x=>x.rowIndex===modalCtx.rowIndex);
+      if (c) {
+        const dk = DOCS_COND.find(d=>d.columna===modalCtx.columna);
+        if (dk) c[dk.key] = fechaDMY;
+        c.estado = recalcEstado(c);
+      }
+    } else {
+      const v = vehiculos.find(x=>x.rowIndex===modalCtx.rowIndex);
+      if (v && v.docs) v.docs[modalCtx.columna] = fechaDMY;
+    }
+  }
+
+  // Subir archivo a Drive si hay
+  if (archivoSel) {
+    const reader = new FileReader();
+    reader.onload = async e => {
+      const b64 = e.target.result.split(',')[1];
+      await apiPost({ action:'subirDocumentoDrive', tipo:modalCtx.tipo,
+        rowIndex:modalCtx.rowIndex, columnaUrl:'DRIVE URL',
+        nombreConductor: modalCtx.tipo==='conductor'?modalCtx.nombre:'',
+        placa: modalCtx.tipo==='vehiculo'?modalCtx.nombre:'',
+        base64:b64, mimeType:archivoSel.type,
+        nombreArchivo:`${modalCtx.nombre}_${modalCtx.columna}_${fechaISO||'sin_fecha'}.${archivoSel.name.split('.').pop()}` });
+    };
+    reader.readAsDataURL(archivoSel);
+  }
+
+  toast('Documento actualizado');
+  cerrarModal();
+  renderAlertas(); renderConductores(); renderVehiculos();
+  btn.disabled = false; btn.textContent = 'Guardar';
+}
+
+function recalcEstado(c) {
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const al  = new Date(hoy); al.setDate(al.getDate()+30);
+  let est = 'ok';
+  DOCS_COND.forEach(d => {
+    const fd = parseFecha(c[d.key]);
+    if (!fd) return;
+    if (fd <= hoy && est!=='vencido') est='vencido';
+    else if (fd <= al && est==='ok')   est='proximo';
+  });
+  return est;
+}
+
+function cerrarModal() { document.getElementById('modal-fecha').classList.remove('open'); modalCtx=null; archivoSel=null; }
+
+// ── TABS ────────────────────────────────────────────────────────
+function showTab(name,btn){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+
+// ── HELPERS ─────────────────────────────────────────────────────
+function parseFecha(s){
+  if(!s||s==='—') return null;
+  if(s instanceof Date) return s;
+  const str=s.toString().trim();
+  if(str.indexOf('/')>0){const p=str.split('/');if(p.length===3)return new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));}
+  if(str.length===10&&str.charAt(4)==='-') return new Date(str+'T00:00:00');
+  return null;
+}
+function fi(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function fmtDMY(iso){const[y,m,d]=iso.split('-');return `${d}/${m}/${y}`;}
+function diasStr(fd,hoy){const d=Math.round((fd-hoy)/86400000);return `${d}d`;}
+function escHtml(s){return(s||'').replace(/'/g,"\\'");}
+async function apiPost(data){try{const r=await fetch(API_URL,{method:'POST',body:JSON.stringify(data)});return await r.json();}catch{return{error:'offline'};}}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+// ── DEMO ─────────────────────────────────────────────────────────
+function demoConduct(){
+  const hoy=new Date();
+  const d=(n)=>{const x=new Date(hoy);x.setDate(x.getDate()+n);return `${String(x.getDate()).padStart(2,'0')}/${String(x.getMonth()+1).padStart(2,'0')}/${x.getFullYear()}`;}
+  return[
+    {rowIndex:2,nombre:'Pedro Ramírez',cedula:'12345678',vencLicencia:d(180),vencCarnet:d(-5),vencCursoSingle:d(20),vencExamen:d(90),driveUrl:'',estado:'vencido'},
+    {rowIndex:3,nombre:'Luis Perdomo', cedula:'23456789',vencLicencia:d(365),vencCarnet:d(15),vencCursoSingle:d(200),vencExamen:d(180),driveUrl:'',estado:'proximo'},
+    {rowIndex:4,nombre:'Carlos Muñoz', cedula:'34567890',vencLicencia:d(300),vencCarnet:d(120),vencCursoSingle:d(400),vencExamen:d(250),driveUrl:'',estado:'ok'},
+    {rowIndex:5,nombre:'Jorge Torres', cedula:'45678901',vencLicencia:d(60),vencCarnet:d(90),vencCursoSingle:d(180),vencExamen:d(120),driveUrl:'',estado:'ok'},
+  ];
+}
+function demoVehiculos(){
+  const hoy=new Date();
+  const d=(n)=>{const x=new Date(hoy);x.setDate(x.getDate()+n);return `${String(x.getDate()).padStart(2,'0')}/${String(x.getMonth()+1).padStart(2,'0')}/${x.getFullYear()}`;}
+  return[
+    {rowIndex:2,placa:'ABC-123',docs:{'SOAT':d(180),'TECNOMECANICA':d(-10),'TARJETA OPERACION':d(365)},estado:'vencido'},
+    {rowIndex:3,placa:'XYZ-456',docs:{'SOAT':d(25),'TECNOMECANICA':d(200),'TARJETA OPERACION':d(180)},estado:'proximo'},
+    {rowIndex:4,placa:'DEF-789',docs:{'SOAT':d(300),'TECNOMECANICA':d(150),'TARJETA OPERACION':d(400)},estado:'ok'},
+  ];
+}
+</script>
+</body>
+</html>
