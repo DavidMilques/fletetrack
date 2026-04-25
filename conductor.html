@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#185FA5">
-<title>TRASLADARR3 — Conductor</title>
+<title>FleteTrack — Conductor</title>
 <style>
 :root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;--green:#1D9E75;--green-l:#E1F5EE;--green-t:#085041;--amber:#BA7517;--amber-l:#FAEEDA;--amber-t:#633806;--red:#E24B4A;--red-l:#FCEBEB;--red-t:#791F1F;--gray:#5F5E5A;--gray-l:#F1EFE8;--gray-t:#2C2C2A;--border:#E0DDD6;--bg:#F8F7F4;--r:10px;--rs:6px}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-tap-highlight-color:transparent}
@@ -329,6 +329,7 @@ async function iniciar() {
   // Si hay local con despacho, renderizar inmediatamente
   if (local?.despacho) {
     despacho = local.despacho;
+    // Mostrar inmediatamente con datos locales mientras carga el servidor
     iniciarUI();
   }
   // Cargar desde servidor
@@ -357,29 +358,42 @@ async function iniciar() {
     if (!despacho) { despacho = demoDespacho(); }
     toast('Sin conexión — usando datos guardados');
   }
-  iniciarUI();
+  iniciarUI(); // siempre llamar al final con el estado más actualizado
 }
 
 function iniciarUI() {
-  if (!despacho) return;
-  // Si está COMPLETADO → mostrar pantalla de solo resumen
-  if (despacho.estadoCargue === 'Completado') {
-    mostrarCompletado(); return;
+  if (!despacho) {
+    // Sin despacho — mostrar error en pantalla
+    const lc = document.getElementById('load-cargue');
+    if (lc) lc.innerHTML = '<div style="text-align:center;padding:30px;color:#E24B4A"><div style="font-size:24px;margin-bottom:8px">⚠️</div><div style="font-size:13px;font-weight:600">No se pudo cargar el despacho</div><div style="font-size:11px;color:#5F5E5A;margin-top:6px">Verifica que el link tenga ?id= y ?row= correctos</div></div>';
+    return;
   }
-  // Render header
-  document.getElementById('hdr-titulo').textContent = `Protocolo ${despacho.protocolo}`;
-  document.getElementById('hdr-sub').textContent    = `${despacho.conductor} · ${despacho.placa}`;
-  // Render cargue
-  renderCargue();
-  // Habilitar steps según estado
-  actualizarSteps();
-  document.getElementById('load-cargue').style.display = 'none';
-  document.getElementById('form-cargue').style.display = 'block';
-  // Render novedades select
-  renderSelectTiendas();
-  // Si ya está en ruta o más, mostrar como confirmado
-  if (['En ruta','En retorno','Completado','Novedad'].includes(despacho.estadoCargue)) {
-    marcarCargueConfirmado();
+  try {
+    // Si está COMPLETADO → mostrar pantalla de solo resumen
+    if (despacho.estadoCargue === 'Completado') {
+      mostrarCompletado(); return;
+    }
+    // Render header
+    document.getElementById('hdr-titulo').textContent = `Protocolo ${despacho.protocolo}`;
+    document.getElementById('hdr-sub').textContent    = `${despacho.conductor} · ${despacho.placa}`;
+    // Render cargue
+    renderCargue();
+    // Habilitar steps según estado
+    actualizarSteps();
+    const lc = document.getElementById('load-cargue');
+    const fc = document.getElementById('form-cargue');
+    if (lc) lc.style.display = 'none';
+    if (fc) fc.style.display = 'block';
+    // Render novedades select
+    renderSelectTiendas();
+    // Si ya está en ruta o más, mostrar como confirmado
+    if (['En ruta','En retorno','Completado','Novedad'].includes(despacho.estadoCargue)) {
+      marcarCargueConfirmado();
+    }
+  } catch(e) {
+    console.error('Error en iniciarUI:', e);
+    const lc = document.getElementById('load-cargue');
+    if (lc) lc.innerHTML = '<div style="text-align:center;padding:30px;color:#E24B4A"><div style="font-size:24px;margin-bottom:8px">⚠️</div><div style="font-size:13px;font-weight:600">Error al cargar: ' + e.message + '</div></div>';
   }
 }
 
