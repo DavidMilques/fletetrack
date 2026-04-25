@@ -91,7 +91,7 @@ body{background:var(--bg);color:#1a1a18;min-height:100vh}
 </head>
 <body>
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbyvzYz_rqEq9-e9COeXuqBY5nR5zDV9kdfhbkmaMJfe-0qAJmARLyrhxPAJPsyqihBL/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxtGK8XB4lZJxkQkppNFggOCbSNJ1ThSZd7EriWooCTadxmALJWVCFYjra_YotW44p4/exec';
 const BASE_URL = 'https://davidmilques.github.io/TRASLADARR3/conductor.html';
 const STATS_URL = 'https://davidmilques.github.io/TRASLADARR3/estadisticas.html';
 const INFORMES_URL = 'https://davidmilques.github.io/TRASLADARR3/informes.html';
@@ -117,7 +117,7 @@ let filtroFecha='', filtroEstado='', filtroConductor='', filtroPlaca='';
 </div>
 
 <div class="filtros">
-  <div class="fg"><label>Fecha</label><input type="date" id="f-fecha" onchange="cargarTodo()"></div>
+  <div class="fg"><label>Fecha</label><input type="date" id="f-fecha" onchange="aplicarFiltros()"></div>
   <div class="fsep"></div>
   <div class="fg"><label>Estado</label>
     <select id="f-estado" onchange="aplicarFiltros()">
@@ -167,11 +167,8 @@ function fmtFechaApi(v){if(!v)return'';const[y,m,d]=v.split('-');return`${d}/${m
 
 async function cargarTodo(){
   document.getElementById('ref-icon').classList.add('spinning');
-  // Pasar fecha activa a la API para no traer todo el histórico
-  const fechaActiva=fmtFechaApi(document.getElementById('f-fecha').value);
-  const urlParams=fechaActiva?`?action=getDespachos&fecha=${encodeURIComponent(fechaActiva)}`:'?action=getDespachos';
   try{
-    const r=await fetch(`${API_URL}${urlParams}`);
+    const r=await fetch(`${API_URL}?action=getDespachos`);
     const d=await r.json();
     if(d.error)throw new Error(d.error);
     todos=d.despachos||[];
@@ -221,7 +218,7 @@ function aplicarFiltros(){
 
 function limpiarFiltros(){
   ['f-fecha','f-estado','f-conductor','f-placa'].forEach(id=>document.getElementById(id).value='');
-  filtroFecha=filtroEstado=filtroConductor=filtroPlaca='';cargarTodo();
+  filtroFecha=filtroEstado=filtroConductor=filtroPlaca='';aplicarFiltros();
 }
 
 function badgeCls(estado){const m={'Cargando':'b-cargando','En ruta':'b-ruta','En retorno':'b-retorno','Completado':'b-completado','Novedad':'b-novedad'};return m[estado]||'b-pend';}

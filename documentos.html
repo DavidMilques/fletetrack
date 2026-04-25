@@ -96,7 +96,7 @@ tr:hover td{background:var(--bg)}
   <h1>📄 Documentos</h1>
   <div class="topbar-nav">
     <a class="nav-link" href="login.html">Inicio</a>
-    <a class="nav-link" href="dashboard_v2.html">Dashboard</a>
+    <a class="nav-link" href="dashboard.html">Dashboard</a>
   </div>
 </div>
 <div class="tabs">
@@ -183,13 +183,13 @@ tr:hover td{background:var(--bg)}
 <div class="toast" id="toast"></div>
 
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbyvzYz_rqEq9-e9COeXuqBY5nR5zDV9kdfhbkmaMJfe-0qAJmARLyrhxPAJPsyqihBL/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxtGK8XB4lZJxkQkppNFggOCbSNJ1ThSZd7EriWooCTadxmALJWVCFYjra_YotW44p4/exec';
 
 const DOCS_COND = [
-  { key:'vencLicencia',    label:'Licencia de conducción',     columna:'FECHA VENCIMIENTO LICENCIA' },
-  { key:'vencCarnet',      label:'Carnet manipulación alimentos', columna:'FECHA VENCIMIENTO CARNET' },
-  { key:'vencCursoSingle', label:'Curso single pallet',         columna:'FECHA VENCIMIENTO CURSO SINGLE' },
-  { key:'vencExamen',      label:'Examen médico',               columna:'FECHA VENCIMIENTO EXAMEN' }
+  { key:'vencLicencia',    label:'Licencia de conducción',        columna:'Fecha de vencimiento Licencia de conducción' },
+  { key:'vencCarnet',      label:'Carnet manipulación alimentos', columna:'Fecha de vencimiento Carnet manipúlacion de alimentos' },
+  { key:'vencCursoSingle', label:'Curso single pallet',           columna:'Curso de single pallet' },
+  { key:'vencExamen',      label:'Examen médico',                 columna:'fecha vencimiento Examen' }
 ];
 
 let conductores = [];
