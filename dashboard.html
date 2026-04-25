@@ -101,7 +101,7 @@ let filtroFecha='', filtroEstado='', filtroConductor='', filtroPlaca='';
 
 <div class="topbar">
   <div class="topbar-left">
-    <h1>FleteTrack</h1>
+    <h1>TRASLADARR3</h1>
     <div class="topbar-nav">
       <a class="nav-link" id="link-stats" href="#">📊 Estadísticas</a>
       <a class="nav-link" id="link-inf" href="#">📋 Informes</a>
@@ -193,11 +193,18 @@ function aplicarFiltros(){
   filtroConductor=document.getElementById('f-conductor').value;
   filtroPlaca=document.getElementById('f-placa').value;
   filtrados=todos.filter(d=>{
-    // Normalizar ambas fechas para comparación robusta
     if(filtroFecha){
-      const fD=(d.fecha||'').toString().trim();
-      const fF=filtroFecha.trim();
-      if(!fD||fD!==fF)return false;
+      // Normalizar a yyyy-MM-dd para comparar sin importar formato
+      const normF = s => {
+        if(!s) return '';
+        const t = s.toString().trim();
+        if(t.indexOf('/')>=0){
+          const p=t.split('/');
+          if(p.length===3) return p[2].padStart(4,'0')+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');
+        }
+        return t;
+      };
+      if(normF(d.fecha) !== normF(filtroFecha)) return false;
     }
     if(filtroEstado&&d.estadoCargue!==filtroEstado)return false;
     if(filtroConductor&&d.conductor!==filtroConductor)return false;
