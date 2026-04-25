@@ -101,7 +101,7 @@ tr:hover td{background:var(--bg)}
 </head>
 <body>
 <script>
-const API_URL  = 'https://script.google.com/macros/s/AKfycbx7G5Uzr6B60OLXBspJnuYIrCAeAu4lSTS4lR02yg4ToCjHuR0NTgEBFDQZHSzxLPiH/exec';
+const API_URL  = 'https://script.google.com/macros/s/AKfycbx53LHeeQw4SZ1gQHjT6hv1-BkRWq5BWBygMh72DLktnvCym_RNbrfygWswtypD7lpt/exec';
 const DASH_URL = 'https://davidmilques.github.io/TRASLADARR3/dashboard.html';
 const INF_URL  = 'https://davidmilques.github.io/TRASLADARR3/informes.html';
 const CATS_NOV = ['PALLET EN RESERVA','ESTIBAS NO LOCALIZADAS','PALLET SIN VINIPEL','PALLET MAL CONFORMADAS','PALLET POR REMONTES','CONTENEDORES'];
@@ -115,6 +115,7 @@ let stats = null; let dispData = null; let charts = {};
   <div class="topbar-right">
     <a class="nav-link" id="link-dash">Dashboard</a>
     <a class="nav-link" id="link-inf">Informes</a>
+    <a class="nav-link" href="login.html">Inicio</a>
     <span class="last-upd" id="last-upd"></span>
     <button class="refresh-btn" onclick="cargar()">
       <svg id="ref-icon" width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M13.5 8A5.5 5.5 0 112.5 5M2.5 2v3h3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -128,6 +129,11 @@ let stats = null; let dispData = null; let charts = {};
   <span style="font-size:11px;color:var(--gray)">— o rango —</span>
   <div class="fg"><label>Desde</label><input type="date" id="f-desde"></div>
   <div class="fg"><label>Hasta</label><input type="date" id="f-hasta"></div>
+  <div class="fg"><label>Corte</label>
+    <select id="f-corte" style="font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:var(--rs);background:white;outline:none">
+      <option value="">Todos los cortes</option>
+    </select>
+  </div>
   <button class="consult-btn" onclick="cargar()">Consultar</button>
   <span style="font-size:11px;color:var(--gray);margin-left:auto" id="f-info"></span>
 </div>
@@ -337,11 +343,16 @@ function fa(v){ if(!v)return''; const[y,m,d]=v.split('-'); return `${d}/${m}/${y
 async function cargar() {
   document.getElementById('ref-icon').classList.add('spinning');
   showAll('loading');
-  const fecha = fa(document.getElementById('f-fecha').value);
-  const desde = fa(document.getElementById('f-desde').value);
-  const hasta = fa(document.getElementById('f-hasta').value);
-  const p = fecha ? `fecha=${fecha}` : `fechaDesde=${desde}&fechaHasta=${hasta}`;
-  document.getElementById('f-info').textContent = fecha ? `Fecha: ${fecha}` : desde&&hasta ? `${desde} → ${hasta}` : 'Todo el histórico';
+  const fecha  = fa(document.getElementById('f-fecha').value);
+  const desde  = fa(document.getElementById('f-desde').value);
+  const hasta  = fa(document.getElementById('f-hasta').value);
+  const corte  = document.getElementById('f-corte').value;
+  let p = fecha ? `fecha=${fecha}` : `fechaDesde=${desde}&fechaHasta=${hasta}`;
+  if (corte) p += `&corte=${encodeURIComponent(corte)}`;
+  document.getElementById('f-info').textContent = [
+    corte ? `Corte: ${corte}` : '',
+    fecha ? `Fecha: ${fecha}` : desde&&hasta ? `${desde} → ${hasta}` : ''
+  ].filter(Boolean).join(' · ') || 'Todo el histórico';
   try {
     const [r1, r2] = await Promise.all([
       fetch(`${API_URL}?action=getEstadisticas&${p}`).then(r=>r.json()),
@@ -352,6 +363,13 @@ async function cargar() {
   } catch(e) {
     stats = demoStats(); dispData = demoDisp();
     toast('Modo demo — configura API_URL');
+  }
+  // Poblar selector de cortes con valores únicos
+  if (stats.cortes && stats.cortes.length) {
+    const sel = document.getElementById('f-corte');
+    const val = sel.value;
+    sel.innerHTML = '<option value="">Todos los cortes</option>' +
+      stats.cortes.map(c=>`<option value="${c}"${c===val?' selected':''}>${c}</option>`).join('');
   }
   renderResumen(); renderNovedades(); renderConductores(); renderVehiculos(); renderDisponibilidad(); renderRanking(); renderAdherencia();
   document.getElementById('last-upd').textContent = new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});

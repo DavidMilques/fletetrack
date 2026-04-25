@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#185FA5">
-<title>TRASLADARR3 — Dashboard</title>
+<title>FleteTrack — Dashboard</title>
 <style>
 :root{--blue:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;--green:#1D9E75;--green-l:#E1F5EE;--green-t:#085041;--amber:#BA7517;--amber-l:#FAEEDA;--amber-t:#633806;--red:#E24B4A;--red-l:#FCEBEB;--red-t:#791F1F;--gray:#5F5E5A;--gray-l:#F1EFE8;--gray-t:#2C2C2A;--border:#e0ddd6;--bg:#f8f7f4;--r:10px;--rs:6px}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
@@ -91,12 +91,12 @@ body{background:var(--bg);color:#1a1a18;min-height:100vh}
 </head>
 <body>
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbx7G5Uzr6B60OLXBspJnuYIrCAeAu4lSTS4lR02yg4ToCjHuR0NTgEBFDQZHSzxLPiH/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbx53LHeeQw4SZ1gQHjT6hv1-BkRWq5BWBygMh72DLktnvCym_RNbrfygWswtypD7lpt/exec';
 const BASE_URL = 'https://davidmilques.github.io/TRASLADARR3/conductor.html';
 const STATS_URL = 'https://davidmilques.github.io/TRASLADARR3/estadisticas.html';
 const INFORMES_URL = 'https://davidmilques.github.io/TRASLADARR3/informes.html';
 let todos=[], filtrados=[], selIdx=0, selId=null;
-let filtroFecha='', filtroEstado='', filtroConductor='', filtroPlaca='';
+let filtroFecha='', filtroEstado='', filtroConductor='', filtroPlaca='', filtroCorte='';
 </script>
 
 <div class="topbar">
@@ -135,6 +135,12 @@ let filtroFecha='', filtroEstado='', filtroConductor='', filtroPlaca='';
   <div class="fg"><label>Conductor</label><select id="f-conductor" onchange="aplicarFiltros()"><option value="">Todos</option></select></div>
   <div class="fsep"></div>
   <div class="fg"><label>Placa</label><select id="f-placa" onchange="aplicarFiltros()"><option value="">Todas</option></select></div>
+  <div class="fsep"></div>
+  <div class="fg"><label>Corte</label>
+    <select id="f-corte" onchange="aplicarFiltros()">
+      <option value="">Todos los cortes</option>
+    </select>
+  </div>
   <button class="freset" onclick="limpiarFiltros()">Limpiar</button>
   <span style="font-size:11px;color:var(--gray);margin-left:auto" id="f-count"></span>
 </div>
@@ -186,6 +192,9 @@ function poblarSelects(){
   const placas=[...new Set(todos.map(d=>d.placa).filter(Boolean))].sort();
   sc.innerHTML='<option value="">Todos</option>'+conds.map(c=>`<option value="${c}"${c===vC?' selected':''}>${c}</option>`).join('');
   sp.innerHTML='<option value="">Todas</option>'+placas.map(p=>`<option value="${p}"${p===vP?' selected':''}>${p}</option>`).join('');
+  const selCo=document.getElementById('f-corte');const vCo=selCo.value;
+  const cortes=[...new Set(todos.map(d=>d.corte).filter(Boolean))].sort().reverse();
+  selCo.innerHTML='<option value="">Todos los cortes</option>'+cortes.map(c=>`<option value="${c}"${c===vCo?' selected':''}>${c}</option>`).join('');
 }
 
 function aplicarFiltros(){
@@ -193,6 +202,7 @@ function aplicarFiltros(){
   filtroEstado=document.getElementById('f-estado').value;
   filtroConductor=document.getElementById('f-conductor').value;
   filtroPlaca=document.getElementById('f-placa').value;
+  filtroCorte=document.getElementById('f-corte').value;
   filtrados=todos.filter(d=>{
     if(filtroFecha){
       // Normalizar a yyyy-MM-dd para comparar sin importar formato
@@ -210,6 +220,7 @@ function aplicarFiltros(){
     if(filtroEstado&&d.estadoCargue!==filtroEstado)return false;
     if(filtroConductor&&d.conductor!==filtroConductor)return false;
     if(filtroPlaca&&d.placa!==filtroPlaca)return false;
+    if(filtroCorte&&(d.corte||'')!==filtroCorte)return false;
     return true;
   });
   const txt=filtrados.length===todos.length?`${todos.length} despachos`:`${filtrados.length} de ${todos.length}`;
@@ -226,7 +237,7 @@ function aplicarFiltros(){
 
 function limpiarFiltros(){
   ['f-fecha','f-estado','f-conductor','f-placa'].forEach(id=>document.getElementById(id).value='');
-  filtroFecha=filtroEstado=filtroConductor=filtroPlaca='';aplicarFiltros();
+  filtroFecha=filtroEstado=filtroConductor=filtroPlaca=filtroCorte='';['f-fecha','f-estado','f-conductor','f-placa','f-corte'].forEach(id=>document.getElementById(id).value='');aplicarFiltros();
 }
 
 function badgeCls(estado){const m={'Cargando':'b-cargando','En ruta':'b-ruta','En retorno':'b-retorno','Completado':'b-completado','Novedad':'b-novedad'};return m[estado]||'b-pend';}
