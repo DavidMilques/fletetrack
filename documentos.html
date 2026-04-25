@@ -93,10 +93,10 @@ tr:hover td{background:var(--bg)}
 </head>
 <body>
 <div class="topbar">
-  <h1>📄 Documentos</h1>
+  <img src="logo.png" alt="Logo" style="height:32px;object-fit:contain;vertical-align:middle">
   <div class="topbar-nav">
     <a class="nav-link" href="login.html">Inicio</a>
-    <a class="nav-link" href="dashboard.html">Dashboard</a>
+    <a class="nav-link" href="dashboard_v2.html">Dashboard</a>
   </div>
 </div>
 <div class="tabs">
@@ -183,7 +183,14 @@ tr:hover td{background:var(--bg)}
 <div class="toast" id="toast"></div>
 
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbyNUPDBgpULFpsQQvh3PbT-gfrEJxRMi4vmpZYppSAx7b2coImXvmCAtr8UvHPnZOTv/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbw3f9n-PV6uyD_jT88gW2jNla7YUdPk18csIx2YtSIHWwrzc4mqGXAjaN3lkD9NZ_EV/exec';
+
+const DOCS_VEH_KEYS = [
+  { key:'ACTA DE INSPECCION SANITARIA', label:'Acta de inspección sanitaria' },
+  { key:'FUMIGACION',                   label:'Fumigación' },
+  { key:'SOAT',                         label:'SOAT' },
+  { key:'RTM',                          label:'RTM (Revisión técnico-mecánica)' }
+];
 
 const DOCS_COND = [
   { key:'vencLicencia',    label:'Licencia de conducción',        columna:'Fecha de vencimiento Licencia de conducción' },
@@ -237,14 +244,15 @@ function renderAlertas() {
   });
 
   vehiculos.forEach(v => {
-    Object.entries(v.docs||{}).forEach(([doc,fecha]) => {
+    DOCS_VEH_KEYS.forEach(d => {
+      const fecha = (v.docs||{})[d.key]||'';
       if (!fecha||fecha==='—') return;
       const fd = parseFecha(fecha); if (!fd) return;
       const dias = Math.round((fd-hoy)/86400000);
       if (dias > 30) return;
-      filas.push({ quien:v.placa, doc, fecha, dias,
+      filas.push({ quien:v.placa, doc:d.label, fecha, dias,
         estado: dias<=0?'vencido':'proximo',
-        tipo:'vehiculo', rowIndex:v.rowIndex, columna:doc, nombre:v.placa });
+        tipo:'vehiculo', rowIndex:v.rowIndex, columna:d.key, nombre:v.placa });
     });
   });
 
@@ -318,31 +326,36 @@ function renderConductores() {
 
 // ── VEHÍCULOS ──────────────────────────────────────────────────
 function renderVehiculos() {
+  const hoy    = new Date(); hoy.setHours(0,0,0,0);
+  const alerta = new Date(hoy); alerta.setDate(hoy.getDate()+30);
   if (!vehiculos.length) {
-    document.getElementById('tbody-veh').innerHTML = '<tr><td class="empty">Sin datos de vehículos</td></tr>';
+    document.getElementById('tbody-veh').innerHTML = '<tr><td colspan="6" class="empty">Sin datos de vehículos — verifica que la hoja "vehiculos" exista en tu libro</td></tr>';
+    document.getElementById('thead-veh').innerHTML = '<tr><th>Placa</th><th>Acta inspección</th><th>Fumigación</th><th>SOAT</th><th>RTM</th><th>Estado</th></tr>';
     return;
   }
-  // Cabecera dinámica según columnas del primer vehículo
-  const docKeys = vehiculos.length > 0 ? Object.keys(vehiculos[0].docs||{}) : [];
-  const hoy = new Date(); hoy.setHours(0,0,0,0);
-  const alerta = new Date(hoy); alerta.setDate(hoy.getDate()+30);
   document.getElementById('thead-veh').innerHTML = `<tr>
-    <th>Placa</th>${docKeys.map(k=>`<th>${k}</th>`).join('')}<th>Estado</th>
+    <th>Placa</th>${DOCS_VEH_KEYS.map(d=>`<th>${d.label}</th>`).join('')}<th>Estado</th>
   </tr>`;
   document.getElementById('tbody-veh').innerHTML = vehiculos.map(v => {
-    const celdas = docKeys.map(k => {
-      const f  = v.docs[k]||'—';
-      const fd = parseFecha(f);
+    const celdas = DOCS_VEH_KEYS.map(d => {
+      const f   = (v.docs||{})[d.key]||'—';
+      const fd  = parseFecha(f);
       const bCls = !fd?'b-na':fd<=hoy?'b-venc':fd<=alerta?'b-warn':'b-ok';
-      const bTxt = !fd?'—':fd<=hoy?'Vencido':fd<=alerta?diasStr(fd,hoy):'Al día';
+      const bTxt = !fd?'Sin fecha':fd<=hoy?'Vencido':fd<=alerta?diasStr(fd,hoy)+'d':'Al día';
       return `<td>
-        <div>${f}</div>
+        <div style="font-size:11px;font-weight:500">${f}</div>
         <span class="badge ${bCls}">${bTxt}</span>
-        <button class="icon-btn" style="margin-left:4px" onclick="abrirModal('vehiculo',${v.rowIndex},'${escHtml(k)}','${v.placa}','${escHtml(k)}','${f}')">✏️</button>
+        <button class="icon-btn" style="margin-left:4px;margin-top:3px"
+          onclick="abrirModal('vehiculo',${v.rowIndex},'${d.key}','${escHtml(v.placa)}','${d.label}','${f}')">✏️</button>
       </td>`;
     }).join('');
     const bCls = v.estado==='ok'?'b-ok':v.estado==='proximo'?'b-warn':'b-venc';
-    return `<tr><td style="font-weight:700">${v.placa}</td>${celdas}<td><span class="badge ${bCls}">${v.estado==='ok'?'Al día':v.estado==='proximo'?'Por vencer':'Vencido'}</span></td></tr>`;
+    const bTxt = v.estado==='ok'?'Al día':v.estado==='proximo'?'Por vencer':'Vencido';
+    return `<tr>
+      <td style="font-weight:700;font-size:13px">${v.placa}</td>
+      ${celdas}
+      <td><span class="badge ${bCls}">${bTxt}</span></td>
+    </tr>`;
   }).join('');
 }
 
@@ -401,7 +414,7 @@ async function guardarFecha() {
       await apiPost({ action:'subirDocumentoDrive', tipo:modalCtx.tipo,
         rowIndex:modalCtx.rowIndex, columnaUrl:'DRIVE URL',
         nombreConductor: modalCtx.tipo==='conductor'?modalCtx.nombre:'',
-        placa: modalCtx.tipo==='vehiculo'?modalCtx.nombre:'',
+        placa: modalCtx.tipo==='vehiculo'?modalCtx.nombre:modalCtx.nombre,
         base64:b64, mimeType:archivoSel.type,
         nombreArchivo:`${modalCtx.nombre}_${modalCtx.columna}_${fechaISO||'sin_fecha'}.${archivoSel.name.split('.').pop()}` });
     };
